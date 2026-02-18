@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    <script src="api.js"></script>
 </head>
 
 <body>
@@ -83,8 +86,7 @@
                         </path>
                     </svg>
                 </a>
-                <button onclick="localStorage.removeItem('token');window.location='login.html'" class="top-nav-action"
-                    title="Déconnexion">
+                <button onclick="API.logout()" class="top-nav-action" title="Déconnexion">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
