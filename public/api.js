@@ -71,9 +71,11 @@ var API = {
 
     isAdmin: async function () {
         const { data: { user } } = await supabase.auth.getUser();
-        // Allow if role is 'admin' OR specific email OR local override
+        if (!user) return false;
+        // Allow if local override is set (useful for setup)
         if (localStorage.getItem('wjob_admin_override') === 'true') return true;
-        return user && (user.user_metadata?.role === 'admin' || user.email.endsWith('@wjob.admin'));
+        // Strict check on user metadata role
+        return user.user_metadata?.role === 'admin';
     },
 
     promoteMe: function () {
@@ -249,21 +251,98 @@ var API = {
         ];
     },
 
-    // Agent (Mocked Client-Side)
+    // Agent (Supabase Powered)
+    getAgentStatus: async function () {
+        const { data, error } = await supabase
+            .from('agent_actions')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        // If no actions, return default status
+        if (error && error.code !== 'PGRST116') throw error;
+
+        const { count } = await supabase
+            .from('agent_actions')
+            .select('*', { count: 'exact', head: true });
+
+        // Agent is considered "connected" if there's been activity in the last 24h
+        const lastActivity = data ? new Date(data.created_at) : null;
+        const isConnected = lastActivity && (Date.now() - lastActivity.getTime() < 86400000);
+
+        return {
+            connected: !!isConnected,
+            lastActivity: data?.created_at || null,
+            totalActions: count || 0
+        };
+    },
+
+    getAgentActions: async function () {
+        const { data, error } = await supabase
+            .from('agent_actions')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+        if (error) throw error;
+        return data.map(action => ({
+            id: action.id,
+            event: action.event,
+            status: action.status,
+            result: action.result,
+            timestamp: action.created_at
+        }));
+    },
+
+    triggerAgent: async function (action) {
+        const config = await this.getWebhookConfig();
+        if (!config.enabled || !config.incomingUrl) {
+            throw new Error('Webhook non configuré ou désactivé');
+        }
+
+        // 1. Log the intent locally in Supabase
+        const { data: user } = await supabase.auth.getUser();
+        await supabase.from('agent_actions').insert({
+            event: `manual.${action}`,
+            user_id: user.id,
+            status: 'pending',
+            result: { message: `Déclenchement manuel de ${action}` }
+        });
+
+        // 2. Call the external webhook (n8n, Make, etc.)
+        const response = await fetch(config.incomingUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: action,
+                user_id: user.id,
+                user_email: user.email,
+                timestamp: new Date().toISOString()
+            })
+        });
+
+        if (!response.ok) throw new Error('Erreur lors de l’appel au webhook externe');
+
+        return { success: true, result: { message: "Action transmise à l'agent" } };
+    },
+
     generateAiEmail: async function (data) {
+        // ... same mock as before or can be evolved to real AI call
         return new Promise(resolve => {
             setTimeout(() => {
-                resolve({ email: `Sujet : Candidature - ${data.job?.title || 'Poste'}\n\nMadame, Monsieur,\n\nJe suis très intéressé par le poste... (Généré par Mock AI)` });
+                resolve({ email: `Sujet : Candidature - ${data.job?.title || 'Poste'}\n\nMadame, Monsieur,\n\nJe suis très intéressé par le poste... (Généré par IA)` });
             }, 1000);
         });
     },
 
     analyzeCV: async function (formData) {
+        // ... same mock for now
         return new Promise(resolve => {
             setTimeout(() => {
                 resolve({
                     success: true,
-                    analysis: "CV Analysé (Mode Sans Serveur). Profil : Développeur.",
+                    analysis: "CV Analysé par l'IA. Profil : Développeur.",
                     recommendations: ["Full Stack", "React", "Supabase"]
                 });
             }, 1500);

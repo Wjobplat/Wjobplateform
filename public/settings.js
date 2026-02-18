@@ -45,9 +45,10 @@ async function checkAdminAccess() {
         const isAdmin = await API.isAdmin();
         if (isAdmin) {
             const adminSection = document.getElementById('admin-section');
-            if (adminSection) {
-                adminSection.style.display = 'block';
-            }
+            if (adminSection) adminSection.style.display = 'block';
+
+            const webhookSection = document.getElementById('webhook-section');
+            if (webhookSection) webhookSection.style.display = 'block';
         }
     } catch (e) { console.error('Admin check failed', e); }
 }
