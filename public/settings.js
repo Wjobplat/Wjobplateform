@@ -56,7 +56,8 @@ async function checkAdminAccess() {
 async function loadConfig() {
     try {
         const config = await API.getWebhookConfig();
-        document.getElementById('incoming-url').textContent = config.incomingUrl;
+        const siteUrl = window.location.origin;
+        document.getElementById('incoming-url').textContent = `${siteUrl}/api/webhook`;
         document.getElementById('outgoing-url').value = config.outgoingUrl || '';
         document.getElementById('webhook-secret').value = config.secret;
         document.getElementById('webhook-enabled').checked = config.enabled;

@@ -297,7 +297,7 @@ var API = {
 
     triggerAgent: async function (action) {
         const config = await this.getWebhookConfig();
-        if (!config.enabled || !config.incomingUrl) {
+        if (!config.enabled || !config.outgoingUrl) {
             throw new Error('Webhook non configuré ou désactivé');
         }
 
@@ -305,13 +305,13 @@ var API = {
         const { data: user } = await supabase.auth.getUser();
         await supabase.from('agent_actions').insert({
             event: `manual.${action}`,
-            user_id: user.id,
+            user_id: user.id || null,
             status: 'pending',
             result: { message: `Déclenchement manuel de ${action}` }
         });
 
         // 2. Call the external webhook (n8n, Make, etc.)
-        const response = await fetch(config.incomingUrl, {
+        const response = await fetch(config.outgoingUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
