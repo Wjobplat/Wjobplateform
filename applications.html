@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidatures - Job Application Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="tabs.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🎯</div>
+                <div class="logo-text">JobFlow</div>
+            </div>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="jobs.html" class="nav-link">
+                            <span class="nav-icon">🔍</span>
+                            <span>Recherche d'emplois</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="applications.html" class="nav-link active">
+                            <span class="nav-icon">📝</span>
+                            <span>Candidatures</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="recruiters.html" class="nav-link">
+                            <span class="nav-icon">👥</span>
+                            <span>Recruteurs</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">⚙️</span>
+                            <span>Paramètres</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="page-header fade-in">
+                <h1 class="page-title">Mes candidatures</h1>
+                <p class="page-subtitle">Gérez et suivez toutes vos candidatures</p>
+            </header>
+
+            <!-- Status Tabs -->
+            <div class="card fade-in" style="margin-bottom: var(--space-2xl);">
+                <div
+                    style="display: flex; gap: var(--space-md); border-bottom: 1px solid var(--glass-border); padding-bottom: var(--space-md);">
+                    <button class="status-tab active" data-status="all" onclick="filterByStatus('all')">
+                        Toutes <span class="tab-count" id="count-all">0</span>
+                    </button>
+                    <button class="status-tab" data-status="draft" onclick="filterByStatus('draft')">
+                        Brouillons <span class="tab-count" id="count-draft">0</span>
+                    </button>
+                    <button class="status-tab" data-status="pending" onclick="filterByStatus('pending')">
+                        En attente <span class="tab-count" id="count-pending">0</span>
+                    </button>
+                    <button class="status-tab" data-status="sent" onclick="filterByStatus('sent')">
+                        Envoyées <span class="tab-count" id="count-sent">0</span>
+                    </button>
+                    <button class="status-tab" data-status="responded" onclick="filterByStatus('responded')">
+                        Réponses <span class="tab-count" id="count-responded">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Applications Grid -->
+            <div id="applications-container">
+                <!-- Application cards will be inserted here -->
+            </div>
+        </main>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="applications.js"></script>
+</body>
+
+</html>

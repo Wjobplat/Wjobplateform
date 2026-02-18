@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W-JOB — Connexion</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            padding: var(--space-2xl);
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            animation: slideUp var(--transition-slow);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--space-xl);
+        }
+
+        .login-logo {
+            margin-bottom: var(--space-lg);
+            display: inline-block;
+        }
+
+        .login-logo img {
+            height: 48px;
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: var(--space-xs);
+        }
+
+        .login-subtitle {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-logo">
+                <img src="wjob-logo.svg" alt="W-JOB Logo">
+            </div>
+            <h1 class="login-title" id="page-title">Bon retour</h1>
+            <p class="login-subtitle" id="page-subtitle">Connectez-vous pour gérer vos candidatures</p>
+        </div>
+
+        <form id="login-form">
+            <div class="form-group" id="name-group" style="display: none;">
+                <label class="form-label" for="name">Nom complet</label>
+                <input type="text" id="name" class="form-input" placeholder="Votre nom">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="email">Email ou Identifiant</label>
+                <input type="text" id="email" class="form-input" placeholder="email@exemple.com" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Mot de passe</label>
+                <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--space-md);">
+                Se connecter
+            </button>
+        </form>
+
+        <div style="margin-top: var(--space-lg); text-align: center;">
+            <a href="#" id="toggle-auth"
+                style="color: var(--color-primary); text-decoration: none; font-size: 0.9rem;">Pas encore de compte ?
+                S'inscrire</a>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="api.js"></script>
+    <script>
+        let isLogin = true;
+
+        document.getElementById('toggle-auth').addEventListener('click', (e) => {
+            e.preventDefault();
+            isLogin = !isLogin;
+
+            const title = document.getElementById('page-title');
+            const subtitle = document.getElementById('page-subtitle');
+            const nameGroup = document.getElementById('name-group');
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const toggleLink = document.getElementById('toggle-auth');
+
+            if (isLogin) {
+                title.textContent = 'Bon retour';
+                subtitle.textContent = 'Connectez-vous pour gérer vos candidatures';
+                nameGroup.style.display = 'none';
+                document.getElementById('name').required = false;
+                submitBtn.textContent = 'Se connecter';
+                toggleLink.textContent = "Pas encore de compte ? S'inscrire";
+            } else {
+                title.textContent = 'Créer un compte';
+                subtitle.textContent = 'Rejoignez W-JOB dès aujourd\'hui';
+                nameGroup.style.display = 'block';
+                document.getElementById('name').required = true;
+                submitBtn.textContent = "S'inscrire";
+                toggleLink.textContent = 'Déjà un compte ? Se connecter';
+            }
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value;
+            const btn = e.target.querySelector('button');
+
+            try {
+                btn.textContent = 'Chargement...';
+                btn.disabled = true;
+
+                if (isLogin) {
+                    await API.login(email, password);
+                    showToast('Connexion réussie', 'success');
+                    setTimeout(() => window.location.href = 'welcome.html', 1000);
+                } else {
+                    await API.signup(email, password, name);
+                    showToast('Compte créé ! Veuillez vérifier votre email.', 'success');
+                    btn.textContent = "S'inscrire";
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || 'Une erreur est survenue', 'error');
+                btn.textContent = isLogin ? 'Se connecter' : "S'inscrire";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Révision de candidature - Job Application Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="tabs.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🎯</div>
+                <div class="logo-text">JobFlow</div>
+            </div>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="jobs.html" class="nav-link">
+                            <span class="nav-icon">🔍</span>
+                            <span>Recherche d'emplois</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="applications.html" class="nav-link active">
+                            <span class="nav-icon">📝</span>
+                            <span>Candidatures</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="recruiters.html" class="nav-link">
+                            <span class="nav-icon">👥</span>
+                            <span>Recruteurs</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">⚙️</span>
+                            <span>Paramètres</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-xl);">
+                <a href="applications.html" class="btn btn-secondary">
+                    ← Retour
+                </a>
+            </div>
+
+            <header class="page-header fade-in">
+                <h1 class="page-title" id="page-title">Révision de candidature</h1>
+                <p class="page-subtitle" id="page-subtitle">Vérifiez et modifiez votre candidature avant envoi</p>
+            </header>
+
+            <!-- Job Info Card -->
+            <div class="card fade-in" id="job-info-card" style="margin-bottom: var(--space-2xl);">
+                <!-- Job info will be inserted here -->
+            </div>
+
+            <!-- Warning Banner -->
+            <div class="card fade-in"
+                style="background: rgba(251, 191, 36, 0.1); border-color: var(--status-draft); margin-bottom: var(--space-2xl);">
+                <div style="display: flex; align-items: start; gap: var(--space-md);">
+                    <div style="font-size: 1.5rem;">⚠️</div>
+                    <div>
+                        <h3 style="color: var(--status-draft); margin-bottom: var(--space-sm); font-weight: 700;">
+                            Validation requise avant envoi
+                        </h3>
+                        <p style="color: var(--color-text-secondary);">
+                            Cette candidature ne sera envoyée qu'après votre approbation explicite.
+                            Prenez le temps de vérifier tous les éléments ci-dessous.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Preview -->
+            <div class="card fade-in" style="margin-bottom: var(--space-2xl);">
+                <div class="card-header">
+                    <h2 class="card-title">📧 Email de candidature</h2>
+                    <button class="btn btn-secondary btn-sm" onclick="toggleEdit('email')">
+                        ✏️ Modifier
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="email-preview" class="preview-content">
+                        <!-- Email preview will be inserted here -->
+                    </div>
+                    <div id="email-edit" class="hidden">
+                        <textarea id="email-textarea" class="edit-textarea" rows="10"></textarea>
+                        <div style="display: flex; gap: var(--space-md); margin-top: var(--space-md);">
+                            <button class="btn btn-primary" onclick="saveEdit('email')">
+                                💾 Enregistrer
+                            </button>
+                            <button class="btn btn-secondary" onclick="cancelEdit('email')">
+                                ✕ Annuler
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cover Letter Preview -->
+            <div class="card fade-in" style="margin-bottom: var(--space-2xl);">
+                <div class="card-header">
+                    <h2 class="card-title">📄 Lettre de motivation</h2>
+                    <button class="btn btn-secondary btn-sm" onclick="toggleEdit('cover')">
+                        ✏️ Modifier
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="cover-preview" class="preview-content">
+                        <!-- Cover letter preview will be inserted here -->
+                    </div>
+                    <div id="cover-edit" class="hidden">
+                        <textarea id="cover-textarea" class="edit-textarea" rows="15"></textarea>
+                        <div style="display: flex; gap: var(--space-md); margin-top: var(--space-md);">
+                            <button class="btn btn-primary" onclick="saveEdit('cover')">
+                                💾 Enregistrer
+                            </button>
+                            <button class="btn btn-secondary" onclick="cancelEdit('cover')">
+                                ✕ Annuler
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="card fade-in" style="margin-bottom: var(--space-2xl);">
+                <div class="card-header">
+                    <h2 class="card-title">📝 Notes personnelles</h2>
+                </div>
+                <div class="card-body">
+                    <textarea id="notes-textarea" class="edit-textarea" rows="4"
+                        placeholder="Ajoutez des notes pour vous-même (non envoyées avec la candidature)..."></textarea>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card fade-in" style="background: var(--glass-bg); border: 2px solid var(--glass-border);">
+                <div style="display: flex; flex-direction: column; gap: var(--space-lg);">
+                    <div>
+                        <h3 style="margin-bottom: var(--space-sm); font-weight: 700;">Prêt à envoyer ?</h3>
+                        <p style="color: var(--color-text-secondary); font-size: 0.875rem;">
+                            En cliquant sur "Approuver et envoyer", vous confirmez que cette candidature est prête à
+                            être envoyée.
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: var(--space-md);">
+                        <button class="btn btn-secondary" onclick="saveDraft()">
+                            💾 Enregistrer comme brouillon
+                        </button>
+                        <button class="btn btn-primary" onclick="markAsPending()" style="flex: 1;">
+                            ⏳ Marquer comme "En attente"
+                        </button>
+                        <button class="btn btn-primary" onclick="approveAndSend()"
+                            style="flex: 1; background: var(--gradient-success);">
+                            ✅ Approuver et envoyer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="application-review.js"></script>
+</body>
+
+</html>

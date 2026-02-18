@@ -1,0 +1,96 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@wjob.com",
+      "password": "$2a$10$9B2smuGcImjaSRu/q0k5peWbduFark.//8oDAOKFQdktsmrvyd5IG",
+      "name": "Admin",
+      "role": "admin",
+      "created_at": "2026-02-17T11:44:12.825Z"
+    },
+    {
+      "id": 2,
+      "email": "admin",
+      "password": "$2a$10$wt3kJT8lZ12vkPCUiOi9nOtqdP0gcAv/o0hO/8tCEiEBQ5nKg5fIa",
+      "name": "Admin",
+      "role": "admin",
+      "created_at": "2026-02-17T11:44:12.891Z"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 1,
+      "company": "TechCorp Solutions",
+      "title": "Développeur Full Stack Senior",
+      "location": "Paris, France (Remote)",
+      "contract_type": "CDI",
+      "salary": "55k - 70k €",
+      "source": "LinkedIn",
+      "compatibility": 92,
+      "description": "Nous recherchons un développeur Full Stack passionné pour rejoindre notre équipe. Vous travaillerez sur des projets innovants utilisant React, Node.js et PostgreSQL.",
+      "skills": [
+        "React",
+        "Node.js",
+        "PostgreSQL",
+        "TypeScript"
+      ],
+      "posted_date": "2026-01-15",
+      "remote": 1
+    },
+    {
+      "id": 2,
+      "company": "DataFlow Analytics",
+      "title": "Ingénieur Data Senior",
+      "location": "Lyon, France (Hybride)",
+      "contract_type": "CDI",
+      "salary": "60k - 75k €",
+      "source": "Welcome to the Jungle",
+      "compatibility": 88,
+      "description": "Rejoignez notre équipe data pour construire des pipelines de données robustes et des solutions d'analyse avancées.",
+      "skills": [
+        "Python",
+        "Spark",
+        "AWS",
+        "SQL"
+      ],
+      "posted_date": "2026-01-14",
+      "remote": 0
+    }
+  ],
+  "recruiters": [],
+  "applications": [
+    {
+      "id": 1,
+      "job_id": 1,
+      "status": "pending",
+      "created_date": "2026-01-16",
+      "sent_date": null,
+      "response_date": null,
+      "cover_letter": "Madame, Monsieur...",
+      "custom_email": "Bonjour Sophie...",
+      "notes": "Entreprise intéressante"
+    },
+    {
+      "id": 2,
+      "job_id": 2,
+      "status": "sent",
+      "created_date": "2026-01-15",
+      "sent_date": "2026-01-16",
+      "response_date": null,
+      "cover_letter": "Madame, Monsieur...",
+      "custom_email": "Bonjour Thomas...",
+      "notes": "Relance prévue"
+    }
+  ],
+  "activity_timeline": [],
+  "webhook_config": {
+    "id": 1,
+    "outgoing_url": "",
+    "secret": "46f9d1d82c5e156da12b238f33cfd154cc0e98c274997f5fe3d1e8a1dbcc2e29",
+    "events": "{\"job.created\":true,\"recruiter.found\":true,\"application.generated\":true,\"application.status_changed\":true}",
+    "enabled": 0,
+    "agent_url": ""
+  },
+  "webhook_logs": [],
+  "agent_actions": []
+}

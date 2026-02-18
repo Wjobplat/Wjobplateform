@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W-JOB — Paramètres</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="theme.js"></script>
+</head>
+
+<body>
+    <nav class="top-nav">
+        <div class="top-nav-inner">
+            <a href="index.html" class="top-nav-brand"><img src="wjob-logo.svg" alt="W-JOB"></a>
+            <div class="top-nav-links">
+                <a href="applications.html" class="top-nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                    Démarrer
+                </a>
+                <a href="index.html" class="top-nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="jobs.html" class="top-nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    Emplois
+                </a>
+                <a href="candidatures.html" class="top-nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    Candidatures
+                </a>
+                <a href="recruiters.html" class="top-nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Recruteurs
+                </a>
+            </div>
+            <div class="top-nav-actions">
+                <button class="top-nav-action" onclick="toggleTheme()" title="Thème">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <a href="settings.html" class="top-nav-action" title="Paramètres"
+                    style="color: var(--color-text-primary);">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
+                </a>
+                <button onclick="localStorage.removeItem('token');window.location='login.html'" class="top-nav-action"
+                    title="Déconnexion">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+            <button class="top-nav-toggle"
+                onclick="document.getElementById('mobile-menu').classList.toggle('open')"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+    <div id="mobile-menu" class="top-nav-mobile-menu">
+        <a href="applications.html" class="top-nav-link">Démarrer</a>
+        <a href="index.html" class="top-nav-link">Dashboard</a>
+        <a href="jobs.html" class="top-nav-link">Emplois</a>
+        <a href="candidatures.html" class="top-nav-link">Candidatures</a>
+        <a href="recruiters.html" class="top-nav-link">Recruteurs</a>
+        <a href="settings.html" class="top-nav-link active">Paramètres</a>
+    </div>
+
+    <div class="app-container">
+        <main class="main-content">
+            <header class="page-header fade-in">
+                <h1 class="page-title">Paramètres</h1>
+                <p class="page-subtitle">Configuration des webhooks et gestion des données</p>
+            </header>
+
+            <!-- Profile Section -->
+            <div class="card fade-in" style="margin-bottom: var(--space-2xl);">
+                <div class="card-header">
+                    <h2 class="card-title">👤 Mon Profil</h2>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+                        <div class="form-group">
+                            <label class="form-label" for="profile-firstname">Prénom</label>
+                            <input type="text" id="profile-firstname" class="form-input" placeholder="Votre prénom">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="profile-lastname">Nom</label>
+                            <input type="text" id="profile-lastname" class="form-input" placeholder="Votre nom">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="profile-email">Adresse email</label>
+                        <input type="email" id="profile-email" class="form-input" placeholder="email@exemple.com">
+                        <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.4rem;">Un email
+                            de confirmation sera envoyé si vous changez votre adresse.</p>
+                    </div>
+                    <div style="display: flex; gap: var(--space-md); align-items: center;">
+                        <button class="btn btn-primary" onclick="saveProfile()">💾 Enregistrer le profil</button>
+                        <span id="profile-status"
+                            style="font-size: 0.85rem; color: var(--color-text-secondary);"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Webhook Section -->
+            <div class="card fade-in" style="margin-bottom: var(--space-2xl);">
+                <div class="card-header">
+                    <h2 class="card-title">📡 Configuration Webhook</h2>
+                    <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                        <span style="color: var(--color-text-secondary); font-size: 0.85rem;">Activer</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="webhook-enabled">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">URL du webhook entrant (votre serveur)</label>
+                        <div class="form-input" id="incoming-url"
+                            style="background: var(--color-bg-primary); font-family: monospace; font-size: 0.8rem;">
+                            Chargement...</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL du webhook sortant (agent IA)</label>
+                        <input type="url" class="form-input" id="outgoing-url"
+                            placeholder="https://votre-agent.com/webhook">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secret (HMAC-SHA256)</label>
+                        <div style="display: flex; gap: var(--space-sm);">
+                            <input type="text" class="form-input" id="webhook-secret" readonly
+                                style="font-family: monospace; font-size: 0.8rem;">
+                            <button class="btn btn-secondary btn-sm" onclick="copySecret()">📋</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Événements souscrits</label>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-md);">
+                            <label style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer;">
+                                <input type="checkbox" id="evt-job-created" checked> <span
+                                    style="font-size: 0.85rem;">job.created</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer;">
+                                <input type="checkbox" id="evt-recruiter-found" checked> <span
+                                    style="font-size: 0.85rem;">recruiter.found</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer;">
+                                <input type="checkbox" id="evt-app-generated" checked> <span
+                                    style="font-size: 0.85rem;">application.generated</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer;">
+                                <input type="checkbox" id="evt-status-changed" checked> <span
+                                    style="font-size: 0.85rem;">application.status_changed</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: var(--space-md);">
+                        <button class="btn btn-primary" onclick="saveConfig()">💾 Enregistrer</button>
+                        <button class="btn btn-secondary" onclick="testWebhook()">🧪 Tester</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RGPD Section -->
+            <div class="card fade-in" style="margin-bottom: var(--space-2xl);">
+                <div class="card-header">
+                    <h2 class="card-title">🔒 Gestion des données (RGPD)</h2>
+                </div>
+                <div class="card-body">
+                    <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: var(--space-xl);">
+                        Conformément au RGPD, vous avez le droit d'exporter ou de supprimer l'ensemble de vos données
+                        personnelles.
+                    </p>
+                    <div style="display: flex; gap: var(--space-md);">
+                        <button class="btn btn-secondary" onclick="exportData()">📥 Exporter mes données</button>
+                        <button class="btn btn-danger" onclick="deleteData()">🗑️ Supprimer mes données</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Section -->
+            <div id="admin-section" class="card fade-in"
+                style="margin-bottom: var(--space-2xl); border-color: rgba(99, 102, 241, 0.3); display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">🤖 Administration Agent IA</h2>
+                    <span class="badge badge-draft">Admin</span>
+                </div>
+                <div class="card-body">
+                    <p style="color: var(--color-text-secondary); margin-bottom: var(--space-lg);">
+                        Accédez au panneau de contrôle de l'Agent IA pour surveiller les logs et gérer l'état du
+                        système.
+                    </p>
+                    <a href="agent.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        Ouvrir la console Agent IA
+                    </a>
+                </div>
+            </div>
+
+            <footer class="site-footer">
+                <div class="footer-links">
+                    <a href="privacy.html">Confidentialité</a>
+                    <a href="terms.html">CGU</a>
+                    <a href="legal.html">Mentions légales</a>
+                </div>
+                <div class="footer-copy">© 2026 W-JOB. Tous droits réservés.</div>
+            </footer>
+        </main>
+    </div>
+    <div id="toast-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    <script src="api.js"></script>
+    <script src="settings.js"></script>
+    <script src="cookie-consent.js"></script>
+</body>
+
+</html>

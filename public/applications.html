@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W-JOB — Nouvelle Recherche</title>
+    <meta name="description" content="Déposez votre CV et lancez une recherche d'emploi propulsée par l'IA.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    <script src="api.js"></script>
+</head>
+
+<body>
+    <nav class="top-nav">
+        <div class="top-nav-inner">
+            <a href="index.html" class="top-nav-brand">
+                <img src="wjob-logo.svg" alt="W-JOB">
+            </a>
+            <div class="top-nav-links">
+                <a href="applications.html" class="top-nav-link active">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                    Démarrer
+                </a>
+                <a href="index.html" class="top-nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="jobs.html" class="top-nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    Emplois
+                </a>
+                <a href="candidatures.html" class="top-nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    Candidatures
+                </a>
+                <a href="recruiters.html" class="top-nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Recruteurs
+                </a>
+            </div>
+            <div class="top-nav-actions">
+                <button class="top-nav-action" onclick="toggleTheme()" title="Thème">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <a href="settings.html" class="top-nav-action" title="Paramètres">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
+                </a>
+                <button onclick="API.logout()" class="top-nav-action" title="Déconnexion">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+            <button class="top-nav-toggle"
+                onclick="document.getElementById('mobile-menu').classList.toggle('open')"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+    <div id="mobile-menu" class="top-nav-mobile-menu">
+        <a href="applications.html" class="top-nav-link active">Démarrer</a>
+        <a href="index.html" class="top-nav-link">Dashboard</a>
+        <a href="jobs.html" class="top-nav-link">Emplois</a>
+        <a href="candidatures.html" class="top-nav-link">Candidatures</a>
+        <a href="recruiters.html" class="top-nav-link">Recruteurs</a>
+        <a href="settings.html" class="top-nav-link">Paramètres</a>
+    </div>
+
+    <div class="app-container">
+        <main class="main-content">
+            <header class="page-header fade-in">
+                <h1 class="page-title">Nouvelle Recherche</h1>
+                <p class="page-subtitle">Déposez votre CV et laissez l'IA trouver les meilleures opportunités pour vous
+                </p>
+            </header>
+
+            <!-- Step Wizard -->
+            <div class="step-wizard fade-in">
+                <div class="step-wizard-item active" data-step="1" onclick="goToStep(1)">
+                    <div class="step-wizard-number">1</div>
+                    <span class="step-wizard-label">Upload CV</span>
+                </div>
+                <div class="step-wizard-connector"></div>
+                <div class="step-wizard-item" data-step="2" onclick="goToStep(2)">
+                    <div class="step-wizard-number">2</div>
+                    <span class="step-wizard-label">Analyse IA</span>
+                </div>
+                <div class="step-wizard-connector"></div>
+                <div class="step-wizard-item" data-step="3" onclick="goToStep(3)">
+                    <div class="step-wizard-number">3</div>
+                    <span class="step-wizard-label">Résultats</span>
+                </div>
+                <div class="step-wizard-connector"></div>
+                <div class="step-wizard-item" data-step="4" onclick="goToStep(4)">
+                    <div class="step-wizard-number">4</div>
+                    <span class="step-wizard-label">Candidater</span>
+                </div>
+            </div>
+
+            <!-- STEP 1: Upload CV -->
+            <div class="step-panel active" id="step-1">
+                <div class="hero-dropzone" id="cv-upload-area">
+                    <input type="file" id="cv-file-input" accept=".pdf" style="display: none;">
+                    <div id="dropzone-content">
+                        <div class="dropzone-icon">📄</div>
+                        <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: var(--space-sm);">Déposez votre
+                            CV ici</h2>
+                        <p
+                            style="color: var(--color-text-secondary); font-size: 0.95rem; margin-bottom: var(--space-xl);">
+                            Glissez-déposez ou cliquez pour parcourir<br>
+                            <span style="font-size: 0.8rem; opacity: 0.7;">PDF uniquement • Max 10 MB</span>
+                        </p>
+                        <button class="btn btn-primary"
+                            onclick="event.stopPropagation(); document.getElementById('cv-file-input').click()">
+                            Sélectionner un fichier
+                        </button>
+                    </div>
+                    <div id="file-preview" class="hidden">
+                        <div style="margin-bottom: var(--space-sm);">
+                            <img src="check-file.svg" alt="Fichier validé" width="60" height="60">
+                        </div>
+                        <h3 id="file-name" style="font-size: 1.1rem; font-weight: 600; margin-bottom: var(--space-xs);">
+                            mon_cv.pdf</h3>
+                        <p id="file-size"
+                            style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: var(--space-xl);">
+                            1.2 MB</p>
+                        <div style="display: flex; gap: var(--space-md); justify-content: center;">
+                            <button class="btn btn-primary" id="start-analysis-btn"
+                                onclick="event.stopPropagation(); startAnalysis()">Lancer l'analyse IA →</button>
+                            <button class="btn btn-danger" id="remove-file-btn"
+                                onclick="event.stopPropagation(); removeFile()">Supprimer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: AI Analysis -->
+            <div class="step-panel" id="step-2">
+                <div class="card"
+                    style="max-width: 800px; margin: 0 auto; text-align: center; padding: var(--space-2xl);">
+                    <div id="analysis-loading" class="analysis-loading">
+                        <div class="analysis-spinner"></div>
+                        <h3 style="margin-bottom: var(--space-xs);">Analyse en cours...</h3>
+                        <p id="analysis-status-text" style="color: var(--color-text-secondary); font-size: 0.9rem;">
+                            Lecture du CV...</p>
+                        <div class="analysis-progress">
+                            <div class="analysis-progress-bar" id="analysis-bar"></div>
+                        </div>
+                    </div>
+                    <div id="analysis-results" class="hidden" style="text-align: left;">
+                        <h3
+                            style="margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-sm);">
+                            <span style="font-size: 1.5rem;">🤖</span> Résultats de l'analyse
+                        </h3>
+                        <div id="ai-profile" style="margin-bottom: var(--space-xl);"></div>
+                        <div class="step-nav">
+                            <button class="btn btn-secondary" onclick="goToStep(1)">← Retour</button>
+                            <button class="btn btn-primary" onclick="startSearch()">Rechercher des emplois →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: Search Results -->
+            <div class="step-panel" id="step-3">
+                <div id="search-loading" class="analysis-loading" style="padding: var(--space-2xl);">
+                    <div class="analysis-spinner"></div>
+                    <h3>Recherche en cours...</h3>
+                    <p style="color: var(--color-text-secondary); font-size: 0.9rem;">L'IA explore les offres d'emploi
+                        et les recruteurs...</p>
+                </div>
+                <div id="search-results" class="hidden">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl);">
+                        <div>
+                            <h3 style="margin-bottom: var(--space-xs);">Opportunités trouvées</h3>
+                            <p id="results-count" style="color: var(--color-text-secondary); font-size: 0.9rem;">0
+                                résultats</p>
+                        </div>
+                        <button class="btn btn-primary" id="apply-selected-btn" onclick="goToStep(4)" disabled>
+                            Candidater aux sélectionnés (<span id="selected-count">0</span>) →
+                        </button>
+                    </div>
+                    <div class="job-grid" id="results-grid"></div>
+                    <div class="step-nav">
+                        <button class="btn btn-secondary" onclick="goToStep(2)">← Retour</button>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: Apply -->
+            <div class="step-panel" id="step-4">
+                <div class="card" style="max-width: 800px; margin: 0 auto; padding: var(--space-2xl);">
+                    <h3
+                        style="margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-sm);">
+                        <span style="font-size: 1.5rem;">✉️</span> Générer vos candidatures
+                    </h3>
+                    <p style="color: var(--color-text-secondary); margin-bottom: var(--space-xl);">
+                        L'IA va générer un email personnalisé pour chaque emploi sélectionné.
+                    </p>
+                    <div id="email-drafts"></div>
+                    <div class="step-nav">
+                        <button class="btn btn-secondary" onclick="goToStep(3)">← Retour</button>
+                        <button class="btn btn-primary" onclick="sendAllApplications()">Envoyer toutes les
+                            candidatures</button>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="site-footer">
+                <div class="footer-links">
+                    <a href="privacy.html">Confidentialité</a>
+                    <a href="terms.html">CGU</a>
+                    <a href="legal.html">Mentions légales</a>
+                </div>
+                <div class="footer-copy">© 2026 W-JOB. Tous droits réservés.</div>
+            </footer>
+        </main>
+    </div>
+    <div id="toast-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    <script src="api.js"></script>
+    <script src="applications.js"></script>
+    <script src="cookie-consent.js"></script>
+</body>
+
+</html>

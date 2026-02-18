@@ -1,0 +1,12 @@
+{
+    "rewrites": [
+        {
+            "source": "/",
+            "destination": "/welcome.html"
+        },
+        {
+            "source": "/((?!.*\\.).*)",
+            "destination": "/welcome.html"
+        }
+    ]
+}

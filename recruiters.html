@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruteurs - Job Application Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="tabs.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🎯</div>
+                <div class="logo-text">JobFlow</div>
+            </div>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="jobs.html" class="nav-link">
+                            <span class="nav-icon">🔍</span>
+                            <span>Recherche d'emplois</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="applications.html" class="nav-link">
+                            <span class="nav-icon">📝</span>
+                            <span>Candidatures</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="recruiters.html" class="nav-link active">
+                            <span class="nav-icon">👥</span>
+                            <span>Recruteurs</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">⚙️</span>
+                            <span>Paramètres</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="page-header fade-in">
+                <h1 class="page-title">Recruteurs</h1>
+                <p class="page-subtitle">Gérez vos contacts recruteurs</p>
+            </header>
+
+            <!-- Stats -->
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-xl); margin-bottom: var(--space-2xl);">
+                <div class="card fade-in">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: var(--space-sm);">👥</div>
+                        <div style="font-size: 2rem; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: var(--space-xs);"
+                            id="total-recruiters">0</div>
+                        <div style="color: var(--color-text-secondary); font-size: 0.875rem;">Recruteurs identifiés
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: var(--space-sm);">🏢</div>
+                        <div style="font-size: 2rem; font-weight: 800; background: var(--gradient-secondary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: var(--space-xs);"
+                            id="total-companies">0</div>
+                        <div style="color: var(--color-text-secondary); font-size: 0.875rem;">Entreprises</div>
+                    </div>
+                </div>
+
+                <div class="card fade-in">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: var(--space-sm);">📧</div>
+                        <div style="font-size: 2rem; font-weight: 800; background: var(--gradient-success); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: var(--space-xs);"
+                            id="total-contacts">0</div>
+                        <div style="color: var(--color-text-secondary); font-size: 0.875rem;">Contacts établis</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recruiters List -->
+            <div id="recruiters-container">
+                <!-- Recruiter cards will be inserted here -->
+            </div>
+        </main>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="recruiters.js"></script>
+</body>
+
+</html>
