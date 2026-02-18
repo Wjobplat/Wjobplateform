@@ -468,3 +468,22 @@ function showToast(message, type = 'info') {
         location.reload();
     }
 })();
+
+// Global UI Manager for Admin-only elements
+document.addEventListener('DOMContentLoaded', async function () {
+    try {
+        const isAdmin = await API.isAdmin();
+        if (isAdmin) {
+            document.querySelectorAll('[data-admin-only]').forEach(el => {
+                // Determine appropriate display mode
+                if (el.tagName === 'A' && el.classList.contains('top-nav-link')) {
+                    el.style.display = 'flex';
+                } else {
+                    el.style.display = 'block';
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Global admin check failed:', e);
+    }
+});
