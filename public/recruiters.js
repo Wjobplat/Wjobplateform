@@ -6,9 +6,13 @@ document.addEventListener('DOMContentLoaded', async function () {
         const companies = new Set(recruiters.map(r => r.company)).size;
         document.getElementById('total-companies').textContent = companies;
         document.getElementById('total-contacts').textContent = recruiters.filter(r => r.email).length;
-        renderRecruiters(recruiters);
+        if (recruiters.length > 0) renderRecruiters(recruiters);
     } catch (e) {
-        showToast('Erreur de chargement des recruteurs', 'error');
+        // Table may not exist yet — silently show zeros
+        console.warn('Recruiters not available:', e.message);
+        document.getElementById('total-recruiters').textContent = '0';
+        document.getElementById('total-companies').textContent = '0';
+        document.getElementById('total-contacts').textContent = '0';
     }
 });
 
