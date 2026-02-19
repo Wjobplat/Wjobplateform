@@ -81,7 +81,9 @@ function renderReview() {
     `;
 
     const cvSection = document.getElementById('cv-display');
+    const uploadWrapper = document.querySelector('.file-upload-wrapper');
     if (currentApp.cv_path) {
+        uploadWrapper.style.display = 'none';
         cvSection.innerHTML = `
             <div style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md); background: var(--color-bg-tertiary); border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
                 <span style="font-size: 1.5rem;">📄</span>
@@ -89,14 +91,11 @@ function renderReview() {
                     <div style="font-weight: 600; font-size: 0.9rem;">CV.pdf</div>
                     <div style="color: var(--color-text-muted); font-size: 0.8rem;">Document joint</div>
                 </div>
-                <!-- Token added by server for download if needed, but here we rely on cookie or auth header if using fetch, 
-                     but for simple link download we might need a precise endpoint that checks cookie or we just link it.
-                     Since we use localStorage for auth, direct link won't work easily without a token query param. 
-                     API.exportData uses token query param. Let's do the same. -->
                 <button onclick="downloadCV()" class="btn btn-secondary btn-sm">⬇️ Télécharger</button>
             </div>
         `;
     } else {
+        uploadWrapper.style.display = 'block';
         cvSection.innerHTML = '<div style="color: var(--color-text-muted); font-style: italic;">Aucun CV joint</div>';
     }
 

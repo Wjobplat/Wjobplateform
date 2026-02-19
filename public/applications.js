@@ -54,8 +54,8 @@ function setupFileUpload() {
 
     // Handle Dropzone Click
     dropzone.addEventListener('click', (e) => {
-        // Prevent trigger if clicking on buttons or their children
-        if (e.target.closest('button')) {
+        // Prevent trigger if clicking on buttons or their children, OR if a file is already selected
+        if (e.target.closest('button') || selectedFile) {
             return;
         }
         input.click();
@@ -72,6 +72,7 @@ function setupFileUpload() {
     dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropzone.classList.remove('dragover');
+        if (selectedFile) return; // Ignore if a file is already selected
         if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
     });
 
