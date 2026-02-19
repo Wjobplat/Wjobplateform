@@ -123,25 +123,28 @@ var API = {
         // Frontend expects: { ..., job: { company, ... } } which Supabase provides.
         // We might need to map snake_case to camelCase if frontend relies on it.
         // For now, let's map it to keep frontend happy.
-        return data.map(app => ({
-            id: app.id,
-            jobId: app.job_id,
-            status: app.status,
-            createdDate: app.created_date,
-            sentDate: app.sent_date,
-            responseDate: app.response_date,
-            coverLetter: app.cover_letter,
-            customEmail: app.custom_email,
-            notes: app.notes,
-            cv_path: app.cv_path,
-            job: {
-                id: app.job_id,
-                company: app.job?.company,
-                title: app.job?.title,
-                location: app.job?.location,
-                compatibility: app.job?.compatibility
-            }
-        }));
+        return data.map(app => {
+            const jobData = Array.isArray(app.job) ? app.job[0] : app.job;
+            return {
+                id: app.id,
+                jobId: app.job_id,
+                status: app.status,
+                createdDate: app.created_date,
+                sentDate: app.sent_date,
+                responseDate: app.response_date,
+                coverLetter: app.cover_letter,
+                customEmail: app.custom_email,
+                notes: app.notes,
+                cv_path: app.cv_path,
+                job: {
+                    id: app.job_id,
+                    company: jobData?.company,
+                    title: jobData?.title,
+                    location: jobData?.location,
+                    compatibility: jobData?.compatibility
+                }
+            };
+        });
     },
 
     createApplication: async function (data) {

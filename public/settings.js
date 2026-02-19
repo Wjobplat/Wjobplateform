@@ -1,5 +1,6 @@
 // Settings page - API-powered
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('💡 Tip: Visit settings.html?admin=1 to enable all administrative features if you are not role:admin in Supabase.');
     loadProfile();
     loadConfig();
     loadLogs();
