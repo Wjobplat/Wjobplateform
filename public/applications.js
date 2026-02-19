@@ -54,16 +54,23 @@ function setupFileUpload() {
 
     // Handle Dropzone Click
     dropzone.addEventListener('click', (e) => {
-        // Prevent trigger if clicking on buttons or their children, OR if a file is already selected
-        if (e.target.closest('button') || selectedFile) {
+        // If clicking a button, do nothing (let button's listener handle it)
+        if (e.target.closest('button')) {
             return;
         }
+
+        // If a file is already selected, don't trigger file picker
+        if (selectedFile) {
+            return;
+        }
+
         input.click();
     });
 
     // Handle Drag & Drop
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
+        if (selectedFile) return;
         dropzone.classList.add('dragover');
     });
 
@@ -72,28 +79,30 @@ function setupFileUpload() {
     dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropzone.classList.remove('dragover');
-        if (selectedFile) return; // Ignore if a file is already selected
+        if (selectedFile) return;
         if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
     });
 
-    // Handle File Selection
+    // Handle File Selection (Standard Input)
     input.addEventListener('change', () => {
         if (input.files.length) handleFile(input.files[0]);
     });
 
-    // Handle Buttons (Explicit Listeners)
+    // Handle Buttons
     if (startBtn) {
-        startBtn.addEventListener('click', (e) => {
+        startBtn.onclick = (e) => {
+            e.preventDefault();
             e.stopPropagation();
             startAnalysis();
-        });
+        };
     }
 
     if (removeBtn) {
-        removeBtn.addEventListener('click', (e) => {
+        removeBtn.onclick = (e) => {
+            e.preventDefault();
             e.stopPropagation();
             removeFile();
-        });
+        };
     }
 }
 
