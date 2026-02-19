@@ -1,9 +1,9 @@
 
-// Vercel Serverless Function to handle incoming webhooks from n8n/Make
+// Vercel Serverless Function to handle incoming webhooks
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Use service role for backend bypass
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -34,9 +34,28 @@ export default async function handler(req, res) {
         if (logError) throw logError;
 
         // 2. Perform business logic based on event
-        // (Optional: Update jobs table, applications, etc.)
         if (event === 'job.created') {
             await supabase.from('jobs').insert(data);
+        } else if (event === 'recruiter.found') {
+            await supabase.from('recruiters').insert(data);
+        } else if (event === 'application.generated') {
+            const { jobId, status, coverLetter, customEmail, notes } = data;
+            await supabase.from('applications').insert({
+                job_id: jobId,
+                user_id: user_id,
+                status: status || 'draft',
+                cover_letter: coverLetter,
+                custom_email: customEmail,
+                notes: notes,
+                created_date: new Date().toISOString().split('T')[0]
+            });
+        } else if (event === 'application.status_changed') {
+            const { applicationId, status } = data;
+            const updates = { status };
+            if (status === 'sent') updates.sent_date = new Date().toISOString().split('T')[0];
+            if (status === 'responded') updates.response_date = new Date().toISOString().split('T')[0];
+
+            await supabase.from('applications').update(updates).eq('id', applicationId);
         }
 
         return res.status(200).json({ success: true });

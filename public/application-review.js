@@ -5,21 +5,20 @@ document.addEventListener('DOMContentLoaded', async function () {
     const params = new URLSearchParams(window.location.search);
     const id = parseInt(params.get('id'));
 
+    // Register listener here so it works for ALL flows (new & existing)
+    document.getElementById('cv-upload').addEventListener('change', handleCvUpload);
+
     // NEW: Check for job passed via "Postuler" button if no ID
     if (!id) {
         const jobData = localStorage.getItem('jobToApply');
         if (jobData) {
             const job = JSON.parse(jobData);
             renderJobReview(job);
-            // Clear it so it doesn't persist forever
-            // localStorage.removeItem('jobToApply'); 
             return;
         }
         window.location.href = 'applications.html';
         return;
     }
-
-    document.getElementById('cv-upload').addEventListener('change', handleCvUpload);
 
     try {
         const apps = await API.getApplications();
@@ -196,13 +195,31 @@ async function handleCvUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
 
+    // If this is a brand-new application (no ID yet), save the draft first
+    if (!currentApp.id) {
+        try {
+            const res = await API.createApplication({
+                jobId: currentApp.job.id,
+                status: 'draft',
+                customEmail: currentApp.customEmail,
+                notes: ''
+            });
+            currentApp.id = res.id;
+            currentApp.status = 'draft';
+            showToast('Brouillon créé automatiquement', 'info');
+        } catch (err) {
+            showToast('Erreur: sauvegardez le brouillon avant de téléverser un CV', 'error');
+            return;
+        }
+    }
+
     const formData = new FormData();
     formData.append('cv', file);
 
     try {
         await API.uploadCV(currentApp.id, formData);
         showToast('CV téléversé avec succès', 'success');
-        // Refresh app data
+        // Refresh app data to show the new file
         const apps = await API.getApplications();
         currentApp = apps.find(a => a.id === currentApp.id);
         renderReview();
@@ -212,9 +229,16 @@ async function handleCvUpload(e) {
     }
 }
 
-function downloadCV() {
-    const token = localStorage.getItem('wjob_token');
-    window.open(`/api/applications/${currentApp.id}/cv?token=${token}`, '_blank');
+async function downloadCV() {
+    try {
+        const { data, error } = await supabase.storage
+            .from('cvs')
+            .createSignedUrl(currentApp.cv_path, 60);
+        if (error) throw error;
+        window.open(data.signedUrl, '_blank');
+    } catch (e) {
+        showToast('Erreur de téléchargement du CV', 'error');
+    }
 }
 
 async function generateAiEmail() {

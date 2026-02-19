@@ -301,30 +301,35 @@ var API = {
             throw new Error('Webhook non configuré ou désactivé');
         }
 
-        // 1. Log the intent locally in Supabase
-        const { data: user } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // 1. Log the intent locally
         await supabase.from('agent_actions').insert({
             event: `manual.${action}`,
-            user_id: user.id || null,
+            user_id: user.id,
             status: 'pending',
             result: { message: `Déclenchement manuel de ${action}` }
         });
 
-        // 2. Call the external webhook (n8n, Make, etc.)
-        const response = await fetch(config.outgoingUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: action,
-                user_id: user.id,
-                user_email: user.email,
-                timestamp: new Date().toISOString()
-            })
-        });
+        // 2. Call the trigger endpoint (relative to host for Vercel/Local compatibility)
+        try {
+            const response = await fetch(config.outgoingUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: action,
+                    user_id: user.id,
+                    user_email: user.email,
+                    timestamp: new Date().toISOString()
+                })
+            });
 
-        if (!response.ok) throw new Error('Erreur lors de l’appel au webhook externe');
-
-        return { success: true, result: { message: "Action transmise à l'agent" } };
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return { success: true, result: { message: "Action transmise à l'agent" } };
+        } catch (e) {
+            console.error('Webhook trigger fail:', e);
+            throw new Error('Erreur de communication avec l\'agent');
+        }
     },
 
     generateAiEmail: async function (data) {
@@ -349,27 +354,61 @@ var API = {
         });
     },
 
-    // Webhooks (Mocked for now since not in schema)
     getWebhookConfig: async function () {
-        const stored = localStorage.getItem('wjob_webhook_config');
-        return stored ? JSON.parse(stored) : {
-            incomingUrl: "https://api.wjob.com/v1/webhooks/incoming",
-            outgoingUrl: "",
-            secret: "wjob_sec_9k2m8L4n",
-            enabled: false,
-            events: {
-                'job.created': true,
-                'recruiter.found': true,
-                'application.generated': false,
-                'application.status_changed': true
-            }
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return {};
+
+        const { data, error } = await supabase
+            .from('webhook_config')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+
+        if (!data) {
+            const secret = 'wjob_sec_' + Math.random().toString(36).substr(2, 9);
+            const defaultUrl = window.location.origin + '/api/trigger';
+            return {
+                id: null,
+                outgoingUrl: defaultUrl,
+                secret: secret,
+                enabled: false,
+                events: {
+                    'job.created': true,
+                    'recruiter.found': true,
+                    'application.generated': false,
+                    'application.status_changed': true
+                }
+            };
+        }
+
+        return {
+            id: data.id,
+            outgoingUrl: data.outgoing_url,
+            secret: data.secret,
+            enabled: data.enabled,
+            events: data.events || {}
         };
     },
 
     saveWebhookConfig: async function (config) {
-        const current = await this.getWebhookConfig();
-        const updated = { ...current, ...config };
-        localStorage.setItem('wjob_webhook_config', JSON.stringify(updated));
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const payload = {
+            user_id: user.id,
+            outgoing_url: config.outgoingUrl,
+            enabled: config.enabled,
+            events: config.events,
+            secret: config.secret // Secret is usually generated once, but can be saved here
+        };
+
+        const { error } = await supabase
+            .from('webhook_config')
+            .upsert(payload, { onConflict: 'user_id' });
+
+        if (error) throw error;
         return { success: true };
     },
 
@@ -380,9 +419,21 @@ var API = {
     },
 
     getWebhookLogs: async function () {
-        return [
-            { id: 1, status: 'success', direction: 'incoming', event: 'job.created', details: 'Nouveau poste trouvé via Agent IA', timestamp: new Date().toISOString() }
-        ];
+        const { data, error } = await supabase
+            .from('agent_actions')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(20);
+
+        if (error) throw error;
+        return data.map(log => ({
+            id: log.id,
+            status: log.status,
+            direction: log.event.startsWith('manual.') ? 'outgoing' : 'incoming',
+            event: log.event,
+            details: log.result?.message || log.result?.action || '',
+            timestamp: log.created_at
+        }));
     },
 
     // Consent (Mocked)
