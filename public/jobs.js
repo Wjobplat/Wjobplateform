@@ -32,9 +32,9 @@ function renderJobs(jobs) {
                 <div class="score-circle ${scoreClass}">${job.compatibility}%</div>
             </div>
             <div class="job-details">
-                <div class="job-detail">📍 ${job.location}</div>
-                <div class="job-detail">📄 ${job.contractType}</div>
-                <div class="job-detail">💰 ${job.salary}</div>
+                <div class="job-detail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${job.location}</div>
+                <div class="job-detail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> ${job.contractType}</div>
+                <div class="job-detail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> ${job.salary}</div>
             </div>
             <div class="job-description">${job.description}</div>
             <div style="margin-bottom: var(--space-md);">
@@ -95,10 +95,10 @@ function openJobModal(jobId) {
         <div style="margin-bottom: var(--space-xl);">
             <div style="color: var(--color-text-secondary); margin-bottom: var(--space-sm);">${job.company}</div>
             <div style="display: flex; flex-wrap: wrap; gap: var(--space-md); margin-bottom: var(--space-lg);">
-                <span class="job-detail">📍 ${job.location}</span>
-                <span class="job-detail">📄 ${job.contractType}</span>
-                <span class="job-detail">💰 ${job.salary}</span>
-                <span class="job-detail">📡 ${job.source}</span>
+                <span class="job-detail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${job.location}</span>
+                <span class="job-detail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> ${job.contractType}</span>
+                <span class="job-detail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px;"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> ${job.salary}</span>
+                <span class="job-detail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px;"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg> ${job.source}</span>
             </div>
             <p style="color: var(--color-text-secondary); line-height: 1.8; margin-bottom: var(--space-lg);">${job.description}</p>
             <div style="margin-bottom: var(--space-lg);">

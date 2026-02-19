@@ -86,12 +86,12 @@ function renderReview() {
         uploadWrapper.style.display = 'none';
         cvSection.innerHTML = `
             <div style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md); background: var(--color-bg-tertiary); border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
-                <span style="font-size: 1.5rem;">📄</span>
+                <span style="font-size: 1.5rem; display:inline-flex;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
                 <div style="flex: 1;">
                     <div style="font-weight: 600; font-size: 0.9rem;">CV.pdf</div>
                     <div style="color: var(--color-text-muted); font-size: 0.8rem;">Document joint</div>
                 </div>
-                <button onclick="downloadCV()" class="btn btn-secondary btn-sm">⬇️ Télécharger</button>
+                <button onclick="downloadCV()" class="btn btn-secondary btn-sm" style="display:flex;align-items:center;gap:0.3rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Télécharger</button>
             </div>
         `;
     } else {

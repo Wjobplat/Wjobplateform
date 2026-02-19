@@ -1,6 +1,6 @@
 // Settings page - API-powered
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('💡 Tip: Visit settings.html?admin=1 to enable all administrative features if you are not role:admin in Supabase.');
+    console.log('[W-JOB] Tip: Visit settings.html?admin=1 to enable all administrative features if you are not role:admin in Supabase.');
     loadProfile();
     loadConfig();
     loadLogs();
@@ -110,7 +110,7 @@ async function loadLogs() {
             div.className = 'log-item';
             div.innerHTML = `
                 <div class="log-status ${log.status}"></div>
-                <span>${log.direction === 'incoming' ? '⬇️' : '⬆️'}</span>
+                <span>${log.direction === 'incoming' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 13 12 18 17 13"></polyline><line x1="12" y1="6" x2="12" y2="18"></line></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 11 12 6 7 11"></polyline><line x1="12" y1="18" x2="12" y2="6"></line></svg>'}</span>
                 <span class="log-event">${log.event}</span>
                 <span style="color: var(--color-text-secondary); font-size: 0.8rem; flex: 1;">${log.details || ''}</span>
                 <span class="log-time">${formatRelativeTime(log.timestamp)}</span>
@@ -146,7 +146,7 @@ function exportData() {
 }
 
 async function deleteData() {
-    if (!confirm('⚠️ ATTENTION : Cette action est irréversible.\nToutes vos données seront supprimées.\n\nÊtes-vous sûr de vouloir continuer ?')) return;
+    if (!confirm('ATTENTION : Cette action est irréversible.\nToutes vos données seront supprimées.\n\nÊtes-vous sûr de vouloir continuer ?')) return;
     if (!confirm('Dernière confirmation : voulez-vous vraiment supprimer TOUTES vos données ?')) return;
     try {
         const result = await API.deleteData();

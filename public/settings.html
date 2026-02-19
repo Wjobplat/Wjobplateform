@@ -299,6 +299,68 @@
                         Conformément au RGPD, vous avez le droit d'exporter ou de supprimer l'ensemble de vos données
                         personnelles.
                     </p>
+
+                    <!-- Consent Toggles -->
+                    <div style="margin-bottom: var(--space-xl);">
+                        <h3
+                            style="font-size: 0.9rem; font-weight: 600; margin-bottom: var(--space-md); color: var(--color-text-secondary);">
+                            Consentements</h3>
+                        <div class="consent-item">
+                            <div class="consent-label">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                </svg>
+                                <span>Traitement des données</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="consent-processing">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="consent-item">
+                            <div class="consent-label">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                </svg>
+                                <span>Analytiques</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="consent-analytics">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="consent-item">
+                            <div class="consent-label">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                                    <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                                    <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                                </svg>
+                                <span>Partage via webhook</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="consent-webhook">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-xl);">
+                        <button class="btn btn-primary btn-sm" onclick="saveConsent()"
+                            style="display:flex;align-items:center;gap:0.4rem;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Enregistrer les consentements
+                        </button>
+                    </div>
+
                     <div style="display: flex; gap: var(--space-md);">
                         <button class="btn btn-secondary" onclick="exportData()"
                             style="display:flex;align-items:center;gap:0.4rem;">
@@ -365,9 +427,6 @@
         </main>
     </div>
     <div id="toast-container"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-client.js"></script>
-    <script src="api.js"></script>
     <script src="settings.js"></script>
     <script src="cookie-consent.js"></script>
 </body>

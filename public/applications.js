@@ -187,11 +187,11 @@ function displayAnalysis(data) {
     const profile = document.getElementById('ai-profile');
     profile.innerHTML = `
         <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: var(--radius-lg); padding: var(--space-xl); margin-bottom: var(--space-lg);">
-            <h4 style="margin-bottom: var(--space-md); color: var(--color-primary-light);">📋 Profil détecté</h4>
+            <h4 style="margin-bottom: var(--space-md); color: var(--color-primary-light); display:flex; align-items:center; gap:0.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg> Profil détecté</h4>
             <p style="line-height: 1.8;">${data.analysis}</p>
         </div>
         <div>
-            <h4 style="margin-bottom: var(--space-md);">🎯 Compétences identifiées</h4>
+            <h4 style="margin-bottom: var(--space-md); display:flex; align-items:center; gap:0.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg> Compétences identifiées</h4>
             <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">
                 ${data.recommendations.map(r => `<span class="skill-tag">${r}</span>`).join('')}
             </div>

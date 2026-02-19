@@ -2206,3 +2206,121 @@ body::before {
 .animated-tab.active .animated-tab-count {
     background: rgba(255, 255, 255, 0.25);
 }
+
+/* ========================================
+   SKELETON LOADING
+   ======================================== */
+@keyframes skeleton-pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}
+
+.skeleton {
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    min-height: 160px;
+}
+
+.skeleton-card .skeleton-line {
+    height: 14px;
+    margin-bottom: var(--space-sm);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-tertiary);
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-card .skeleton-line:nth-child(1) {
+    width: 60%;
+}
+
+.skeleton-card .skeleton-line:nth-child(2) {
+    width: 80%;
+}
+
+.skeleton-card .skeleton-line:nth-child(3) {
+    width: 40%;
+}
+
+.skeleton-card .skeleton-line:nth-child(4) {
+    width: 70%;
+    margin-top: var(--space-lg);
+}
+
+/* ========================================
+   SEARCH BAR (Candidatures)
+   ======================================== */
+.search-bar {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    align-items: center;
+}
+
+.search-bar .form-input {
+    flex: 1;
+    background: var(--color-bg-card);
+    border: 1px solid var(--glass-border);
+}
+
+.search-bar select {
+    padding: 0.6rem 1rem;
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    cursor: pointer;
+    min-width: 160px;
+}
+
+.search-bar select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+/* ========================================
+   CONSENT TOGGLES
+   ======================================== */
+.consent-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.consent-item:last-child {
+    border-bottom: none;
+}
+
+.consent-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.consent-label svg {
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+}
+
+.consent-label span {
+    font-size: 0.9rem;
+}

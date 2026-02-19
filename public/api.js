@@ -91,10 +91,25 @@ var API = {
             .select('*')
             .order('posted_date', { ascending: false });
 
-        if (error) throw error;
-        return data;
-        // Note: 'skills' is already JSONB, so automatic parsing should work, 
-        // but if Supabase returns it as object, no manual JSON.parse needed.
+        if (error) {
+            console.error('Supabase getJobs error:', error);
+            throw error;
+        }
+        // Map snake_case to camelCase for frontend compatibility
+        return (data || []).map(job => ({
+            id: job.id,
+            company: job.company,
+            title: job.title,
+            location: job.location,
+            contractType: job.contract_type,
+            salary: job.salary,
+            source: job.source,
+            compatibility: job.compatibility,
+            description: job.description,
+            skills: job.skills || [],
+            postedDate: job.posted_date,
+            remote: job.remote
+        }));
     },
 
     deleteJob: async function (id) {
@@ -230,28 +245,49 @@ var API = {
 
     // Dashboard
     getStats: async function () {
-        // Mocking stats for now as complex aggregation queries are harder in client-side JS without Views
-        // Or we can do separate queries.
-        const { count: jobCount } = await supabase.from('jobs').select('*', { count: 'exact', head: true });
-        const { count: appCount } = await supabase.from('applications').select('*', { count: 'exact', head: true });
+        // Real queries for all dashboard stats
+        const [jobsRes, appsRes, recruitersRes] = await Promise.all([
+            supabase.from('jobs').select('company', { count: 'exact' }),
+            supabase.from('applications').select('status', { count: 'exact' }),
+            supabase.from('recruiters').select('*', { count: 'exact', head: true })
+        ]);
+
+        const jobs = jobsRes.data || [];
+        const apps = appsRes.data || [];
+        const uniqueCompanies = new Set(jobs.map(j => j.company)).size;
 
         return {
-            totalJobs: jobCount || 0,
-            totalApplications: appCount || 0,
-            totalCompanies: 12, // Placeholder
-            totalRecruiters: 5, // Placeholder
-            draftCount: 2,
-            pendingCount: 1,
-            sentCount: 3,
-            respondedCount: 1
+            totalJobs: jobsRes.count || 0,
+            totalApplications: appsRes.count || 0,
+            totalCompanies: uniqueCompanies,
+            totalRecruiters: recruitersRes.count || 0,
+            draftCount: apps.filter(a => a.status === 'draft').length,
+            pendingCount: apps.filter(a => a.status === 'pending').length,
+            sentCount: apps.filter(a => a.status === 'sent').length,
+            respondedCount: apps.filter(a => a.status === 'responded').length
         };
     },
 
     getActivity: async function () {
-        // Mock activity or create a table
-        return [
-            { id: 1, date: "2026-02-17", time: "10:30", type: "job_found", title: "Migration Supabase", description: "Migration vers le cloud effectuée." }
-        ];
+        const { data, error } = await supabase
+            .from('agent_actions')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+        if (error && error.code !== 'PGRST116') {
+            console.error('Activity load error:', error);
+            return [];
+        }
+
+        return (data || []).map(a => ({
+            id: a.id,
+            date: a.created_at?.split('T')[0],
+            time: a.created_at ? new Date(a.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+            type: a.event,
+            title: a.event?.replace(/\./g, ' ').replace(/^\w/, c => c.toUpperCase()),
+            description: a.result?.message || a.status || ''
+        }));
     },
 
     // Agent (Supabase Powered)
@@ -501,7 +537,12 @@ function showToast(message, type = 'info') {
     if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+    const icons = {
+        success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
+        info: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
+        warning: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+    };
     toast.innerHTML = `<span class="toast-icon">${icons[type] || icons.info}</span><span>${message}</span>`;
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('toast-show'));

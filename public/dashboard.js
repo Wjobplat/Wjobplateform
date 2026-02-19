@@ -1,6 +1,6 @@
 // Dashboard JavaScript - API-powered
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('💡 Tip: Visit ?admin=1 to enable all administrative features.');
+    console.log('[W-JOB] Tip: Visit ?admin=1 to enable all administrative features.');
     loadDashboard();
 });
 
