@@ -55,18 +55,33 @@ async function checkAdminAccess() {
 }
 
 async function loadConfig() {
+    // Always set the incoming URL immediately, regardless of API status
+    const siteUrl = window.location.origin;
+    const incomingEl = document.getElementById('incoming-url');
+    if (incomingEl) incomingEl.textContent = `${siteUrl}/api/webhook`;
+
     try {
         const config = await API.getWebhookConfig();
-        const siteUrl = window.location.origin;
-        document.getElementById('incoming-url').textContent = `${siteUrl}/api/webhook`;
         document.getElementById('outgoing-url').value = config.outgoingUrl || '';
-        document.getElementById('webhook-secret').value = config.secret;
-        document.getElementById('webhook-enabled').checked = config.enabled;
-        document.getElementById('evt-job-created').checked = config.events['job.created'];
-        document.getElementById('evt-recruiter-found').checked = config.events['recruiter.found'];
-        document.getElementById('evt-app-generated').checked = config.events['application.generated'];
-        document.getElementById('evt-status-changed').checked = config.events['application.status_changed'];
-    } catch (e) { showToast('Erreur de chargement de la configuration', 'error'); }
+        document.getElementById('webhook-secret').value = config.secret || '';
+        document.getElementById('webhook-enabled').checked = !!config.enabled;
+
+        const events = config.events || {};
+        const setCheck = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+        setCheck('evt-job-created', events['job.created']);
+        setCheck('evt-recruiter-found', events['recruiter.found']);
+        setCheck('evt-app-generated', events['application.generated']);
+        setCheck('evt-status-changed', events['application.status_changed']);
+    } catch (e) {
+        console.warn('Webhook config not available (table may not exist yet):', e.message);
+        // Set sensible defaults so the UI is not stuck on "Chargement..."
+        const outEl = document.getElementById('outgoing-url');
+        if (outEl) outEl.value = '';
+        const secEl = document.getElementById('webhook-secret');
+        if (secEl) secEl.value = 'wjob_sec_' + Math.random().toString(36).substr(2, 9);
+        const enEl = document.getElementById('webhook-enabled');
+        if (enEl) enEl.checked = false;
+    }
 }
 
 async function saveConfig() {

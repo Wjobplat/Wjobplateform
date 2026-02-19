@@ -394,40 +394,48 @@ var API = {
     },
 
     getWebhookConfig: async function () {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return {};
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return this._defaultWebhookConfig();
 
-        const { data, error } = await supabase
-            .from('webhook_config')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
+            const { data, error } = await supabase
+                .from('webhook_config')
+                .select('*')
+                .eq('user_id', user.id)
+                .single();
 
-        if (error && error.code !== 'PGRST116') throw error;
+            // PGRST116 = no rows found, 42P01 = table doesn't exist, 42501 = RLS denied
+            if (error && !['PGRST116', '42P01', '42501'].includes(error.code)) {
+                console.warn('Webhook config error:', error);
+            }
 
-        if (!data) {
-            const secret = 'wjob_sec_' + Math.random().toString(36).substr(2, 9);
-            const defaultUrl = window.location.origin + '/api/trigger';
+            if (!data) return this._defaultWebhookConfig();
+
             return {
-                id: null,
-                outgoingUrl: defaultUrl,
-                secret: secret,
-                enabled: false,
-                events: {
-                    'job.created': true,
-                    'recruiter.found': true,
-                    'application.generated': false,
-                    'application.status_changed': true
-                }
+                id: data.id,
+                outgoingUrl: data.outgoing_url,
+                secret: data.secret,
+                enabled: data.enabled,
+                events: data.events || {}
             };
+        } catch (e) {
+            console.warn('getWebhookConfig fallback:', e.message);
+            return this._defaultWebhookConfig();
         }
+    },
 
+    _defaultWebhookConfig: function () {
         return {
-            id: data.id,
-            outgoingUrl: data.outgoing_url,
-            secret: data.secret,
-            enabled: data.enabled,
-            events: data.events || {}
+            id: null,
+            outgoingUrl: window.location.origin + '/api/trigger',
+            secret: 'wjob_sec_' + Math.random().toString(36).substr(2, 9),
+            enabled: false,
+            events: {
+                'job.created': true,
+                'recruiter.found': true,
+                'application.generated': false,
+                'application.status_changed': true
+            }
         };
     },
 
