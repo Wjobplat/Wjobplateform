@@ -52,12 +52,13 @@ function setupFileUpload() {
 
     if (!dropzone || !input) return;
 
-    // Handle Dropzone Click (Background only)
+    // Handle Dropzone Click
     dropzone.addEventListener('click', (e) => {
-        // Only trigger input click if the clicked element is NOT a button
-        if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-            input.click();
+        // Prevent trigger if clicking on buttons or their children
+        if (e.target.closest('button')) {
+            return;
         }
+        input.click();
     });
 
     // Handle Drag & Drop
