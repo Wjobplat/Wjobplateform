@@ -75,6 +75,7 @@ alter table webhook_config enable row level security;
 create policy "Users can view own webhook config" on webhook_config for select using (auth.uid() = user_id);
 create policy "Users can insert own webhook config" on webhook_config for insert with check (auth.uid() = user_id);
 create policy "Users can update own webhook config" on webhook_config for update using (auth.uid() = user_id);
+create policy "Users can delete own webhook config" on webhook_config for delete using (auth.uid() = user_id);
 
 -- Agent Actions / Logs
 create table agent_actions (
@@ -89,3 +90,4 @@ create table agent_actions (
 alter table agent_actions enable row level security;
 create policy "Users can view own agent actions" on agent_actions for select using (auth.uid() = user_id);
 create policy "Users can insert own agent actions" on agent_actions for insert with check (auth.uid() = user_id);
+create policy "Users can delete own agent actions" on agent_actions for delete using (auth.uid() = user_id);
