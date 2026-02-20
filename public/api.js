@@ -381,16 +381,76 @@ var API = {
     },
 
     analyzeCV: async function (formData) {
-        // ... same mock for now
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve({
-                    success: true,
-                    analysis: "CV Analysé par l'IA. Profil : Développeur.",
-                    recommendations: ["Full Stack", "React", "Supabase"]
+        const file = formData.get('cv');
+        if (!file) throw new Error('Aucun fichier CV fourni');
+
+        // 1. Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Utilisateur non connecté');
+
+        // 2. Upload CV to Supabase Storage
+        const fileName = `cv-${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage
+            .from('cvs')
+            .upload(`${user.id}/${fileName}`, file, { upsert: true });
+
+        let cvUrl = null;
+        if (!uploadError) {
+            // Generate a signed URL valid for 1 hour
+            const { data: signedData } = await supabase.storage
+                .from('cvs')
+                .createSignedUrl(`${user.id}/${fileName}`, 3600);
+            cvUrl = signedData?.signedUrl || null;
+        } else {
+            console.warn('CV upload to storage failed, continuing without URL:', uploadError.message);
+        }
+
+        // 3. Load webhook config and send to outgoing webhook (AI agent)
+        let webhookSent = false;
+        try {
+            const config = await this.getWebhookConfig();
+            if (config.enabled && config.outgoingUrl) {
+                const payload = {
+                    event: 'cv.uploaded',
+                    data: {
+                        user_id: user.id,
+                        file_name: file.name,
+                        file_size: file.size,
+                        cv_url: cvUrl,
+                        timestamp: new Date().toISOString()
+                    }
+                };
+
+                const headers = { 'Content-Type': 'application/json' };
+                if (config.secret) {
+                    // Simple signature for verification
+                    headers['X-Webhook-Secret'] = config.secret;
+                }
+
+                const response = await fetch(config.outgoingUrl, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(payload)
                 });
-            }, 1500);
-        });
+                webhookSent = response.ok;
+                console.log(`[W-JOB] Webhook cv.uploaded envoyé à ${config.outgoingUrl} — status: ${response.status}`);
+            } else {
+                console.log('[W-JOB] Webhook sortant non configuré ou désactivé. Le CV a été uploadé mais pas envoyé à l\'agent.');
+            }
+        } catch (webhookErr) {
+            console.error('[W-JOB] Erreur envoi webhook:', webhookErr.message);
+        }
+
+        // 4. Return result
+        return {
+            success: true,
+            analysis: webhookSent
+                ? "CV envoyé à l'agent IA pour analyse. Vous recevrez les résultats prochainement."
+                : "CV uploadé avec succès. Configurez le webhook sortant dans les Paramètres pour activer l'analyse par l'agent IA.",
+            recommendations: [],
+            webhookSent,
+            cvUrl
+        };
     },
 
     getWebhookConfig: async function () {
