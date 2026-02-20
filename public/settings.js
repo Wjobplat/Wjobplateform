@@ -58,9 +58,15 @@ async function loadConfig() {
     // Always set the incoming URL immediately, regardless of API status
     const siteUrl = window.location.origin;
     const incomingEl = document.getElementById('incoming-url');
-    if (incomingEl) incomingEl.textContent = `${siteUrl}/api/webhook`;
 
     try {
+        const user = await API.getMe();
+        if (incomingEl && user && user.id) {
+            incomingEl.textContent = `${siteUrl}/api/webhook?user_id=${user.id}`;
+        } else if (incomingEl) {
+            incomingEl.textContent = `${siteUrl}/api/webhook`;
+        }
+
         const config = await API.getWebhookConfig();
         document.getElementById('outgoing-url').value = config.outgoingUrl || '';
         document.getElementById('webhook-secret').value = config.secret || '';

@@ -13,7 +13,9 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { event, data, user_id } = req.body;
+        const event = req.body.event || req.query.event;
+        const data = req.body.data || req.body;
+        const user_id = req.query.user_id || req.body.user_id;
 
         if (!event || !user_id) {
             return res.status(400).json({ error: 'Missing event or user_id' });
