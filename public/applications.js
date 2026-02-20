@@ -208,62 +208,48 @@ async function startSearch() {
     document.getElementById('search-loading').classList.remove('hidden');
     document.getElementById('search-results').classList.add('hidden');
 
-    // Mock AI search delay
-    await delay(2000);
+    try {
+        // Fetch real jobs from Supabase
+        const jobs = await API.getJobs();
+        let recruiters = [];
+        try { recruiters = await API.getRecruiters(); } catch (e) { /* table may not exist */ }
 
-    // Mock results (emplois + recruteurs)
-    searchResults = [
-        {
-            id: 1,
-            title: 'Développeur Full Stack',
-            company: 'TechCorp',
-            location: 'Paris, France',
-            contract: 'CDI',
-            description: 'Rejoignez notre équipe pour développer des applications web innovantes avec React et Node.js.',
-            recruiter: { name: 'Marie Dupont', email: 'marie@techcorp.fr', linkedin: 'linkedin.com/in/mariedupont' },
-            strengths: ['Stack moderne', 'Télétravail 3j/sem', 'Équipe internationale'],
-            weaknesses: ['Salaire moyen', 'Startup early-stage']
-        },
-        {
-            id: 2,
-            title: 'Ingénieur Backend',
-            company: 'DataFlow',
-            location: 'Lyon, France',
-            contract: 'CDI',
-            description: 'Conception et développement de microservices haute performance pour notre plateforme data.',
-            recruiter: { name: 'Pierre Martin', email: 'pierre@dataflow.io', linkedin: 'linkedin.com/in/pierremartin' },
-            strengths: ['Salaire compétitif', 'Projets stimulants', 'Formation continue'],
-            weaknesses: ['Peu de remote', 'Process strict']
-        },
-        {
-            id: 3,
-            title: 'Lead Developer React',
-            company: 'StartUpFlow',
-            location: 'Remote',
-            contract: 'CDI',
-            description: 'Pilotez le frontend de notre produit SaaS utilisé par +10 000 entreprises.',
-            recruiter: { name: 'Sophie Laurent', email: 'sophie@startupflow.com', linkedin: 'linkedin.com/in/sophielaurent' },
-            strengths: ['100% Remote', 'Leadership', 'Produit innovant'],
-            weaknesses: ['Horaires flexibles requis', 'Responsabilités élevées']
-        },
-        {
-            id: 4,
-            title: 'DevOps Engineer',
-            company: 'CloudScale',
-            location: 'Bordeaux, France',
-            contract: 'CDI',
-            description: 'Automatisez et gérez notre infrastructure cloud sur AWS et Kubernetes.',
-            recruiter: { name: 'Lucas Bernard', email: 'lucas@cloudscale.fr', linkedin: 'linkedin.com/in/lucasbernard' },
-            strengths: ['Technos cloud avancées', 'Grosse entreprise stable', 'Ticket resto'],
-            weaknesses: ['Déplacements fréquents', 'Environnement corporate']
+        // Map jobs to the format expected by the UI
+        searchResults = jobs.map((job, i) => {
+            // Try to find a matching recruiter by company name
+            const recruiter = recruiters.find(r => r.company && job.company && r.company.toLowerCase() === job.company.toLowerCase())
+                || { name: 'Recruteur', email: 'contact@' + (job.company || 'entreprise').toLowerCase().replace(/\s+/g, '') + '.com', linkedin: '' };
+
+            return {
+                id: job.id,
+                title: job.title,
+                company: job.company,
+                location: job.location || 'Non spécifié',
+                contract: job.contract_type || 'CDI',
+                description: job.description || 'Aucune description disponible.',
+                recruiter: { name: recruiter.name, email: recruiter.email, linkedin: recruiter.linkedin || '' },
+                strengths: (job.skills || []).slice(0, 3).map(s => typeof s === 'string' ? s : s.name || s),
+                weaknesses: []
+            };
+        });
+
+        document.getElementById('search-loading').classList.add('hidden');
+        document.getElementById('search-results').classList.remove('hidden');
+
+        if (searchResults.length === 0) {
+            document.getElementById('results-count').textContent = 'Aucun emploi trouvé. Ajoutez des offres dans l\'onglet Emplois.';
+        } else {
+            document.getElementById('results-count').textContent = `${searchResults.length} résultat(s) trouvé(s)`;
         }
-    ];
 
-    document.getElementById('search-loading').classList.add('hidden');
-    document.getElementById('search-results').classList.remove('hidden');
-    document.getElementById('results-count').textContent = `${searchResults.length} résultats trouvés`;
-
-    renderResults();
+        renderResults();
+    } catch (e) {
+        console.error('Search error:', e);
+        showToast('Erreur lors de la recherche', 'error');
+        document.getElementById('search-loading').classList.add('hidden');
+        document.getElementById('search-results').classList.remove('hidden');
+        document.getElementById('results-count').textContent = 'Erreur de chargement des offres.';
+    }
 }
 
 function renderResults() {
@@ -404,12 +390,52 @@ function editEmail(jobId) {
 }
 
 async function sendSingleApplication(jobId) {
-    showToast(`Candidature envoyée pour ${searchResults.find(j => j.id === jobId)?.title}`, 'success');
+    const job = searchResults.find(j => j.id === jobId);
+    if (!job) return;
+
+    try {
+        const emailEl = document.getElementById(`email-content-${jobId}`);
+        const emailText = emailEl?.textContent || '';
+
+        await API.createApplication({
+            job_id: job.id,
+            status: 'sent',
+            custom_email: emailText,
+            sent_date: new Date().toISOString().slice(0, 10)
+        });
+
+        showToast(`Candidature envoyée pour ${job.title}`, 'success');
+    } catch (e) {
+        console.error('Send error:', e);
+        showToast('Erreur lors de l\'envoi', 'error');
+    }
 }
 
 async function sendAllApplications() {
     const count = selectedJobs.size;
-    showToast(`${count} candidature(s) envoyée(s) avec succès !`, 'success');
+    let sent = 0;
+
+    for (const jobId of selectedJobs) {
+        const job = searchResults.find(j => j.id === jobId);
+        if (!job) continue;
+
+        try {
+            const emailEl = document.getElementById(`email-content-${jobId}`);
+            const emailText = emailEl?.textContent || '';
+
+            await API.createApplication({
+                job_id: job.id,
+                status: 'sent',
+                custom_email: emailText,
+                sent_date: new Date().toISOString().slice(0, 10)
+            });
+            sent++;
+        } catch (e) {
+            console.error(`Error sending application for job ${jobId}:`, e);
+        }
+    }
+
+    showToast(`${sent}/${count} candidature(s) envoyée(s) avec succès !`, 'success');
     setTimeout(() => {
         window.location.href = 'candidatures.html';
     }, 2000);

@@ -94,6 +94,7 @@ async function saveConfig() {
     try {
         await API.saveWebhookConfig({
             outgoingUrl: document.getElementById('outgoing-url').value,
+            secret: document.getElementById('webhook-secret').value,
             enabled: document.getElementById('webhook-enabled').checked,
             events: {
                 'job.created': document.getElementById('evt-job-created').checked,
@@ -161,9 +162,13 @@ async function saveConsent() {
     } catch (e) { showToast('Erreur de sauvegarde', 'error'); }
 }
 
-function exportData() {
-    API.exportData();
-    showToast('Export téléchargé', 'success');
+async function exportData() {
+    try {
+        await API.exportData();
+        showToast('Export téléchargé', 'success');
+    } catch (e) {
+        showToast("Erreur lors de l'export", 'error');
+    }
 }
 
 async function deleteData() {

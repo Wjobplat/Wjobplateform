@@ -372,12 +372,49 @@ var API = {
     },
 
     generateAiEmail: async function (data) {
-        // ... same mock as before or can be evolved to real AI call
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve({ email: `Sujet : Candidature - ${data.job?.title || 'Poste'}\n\nMadame, Monsieur,\n\nJe suis très intéressé par le poste... (Généré par IA)` });
-            }, 1000);
-        });
+        // Try to send to webhook agent for real AI generation
+        try {
+            const config = await this.getWebhookConfig();
+            if (config.enabled && config.outgoingUrl) {
+                const { data: { user } } = await supabase.auth.getUser();
+                const payload = {
+                    event: 'email.generate',
+                    data: {
+                        user_id: user?.id,
+                        job_title: data.job?.title,
+                        company: data.job?.company,
+                        recruiter_name: data.job?.recruiter?.name,
+                        recruiter_email: data.job?.recruiter?.email,
+                        job_description: data.job?.description
+                    }
+                };
+                const headers = { 'Content-Type': 'application/json' };
+                if (config.secret) headers['X-Webhook-Secret'] = config.secret;
+
+                const response = await fetch(config.outgoingUrl, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.email) return { email: result.email };
+                }
+            }
+        } catch (e) {
+            console.warn('[W-JOB] Webhook email generation failed, using template:', e.message);
+        }
+
+        // Fallback: local template
+        const { data: { user } } = await supabase.auth.getUser();
+        const profile = user?.user_metadata || {};
+        const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Candidat';
+        const job = data.job || {};
+
+        return {
+            email: `Objet : Candidature au poste de ${job.title || 'Poste'} — ${job.company || 'Entreprise'}\n\nBonjour ${job.recruiter?.name || 'Madame, Monsieur'},\n\nJe me permets de vous contacter concernant le poste de ${job.title || 'développeur'} au sein de ${job.company || 'votre entreprise'}.\n\nAprès avoir pris connaissance de la description du poste, je suis convaincu(e) que mon profil correspond à vos attentes. Mon expérience et mes compétences me permettraient de contribuer efficacement à votre équipe.\n\nJe serais ravi(e) d'échanger avec vous lors d'un entretien pour vous présenter mon parcours plus en détail.\n\nCordialement,\n${name}`
+        };
     },
 
     analyzeCV: async function (formData) {
@@ -520,9 +557,47 @@ var API = {
     },
 
     testWebhook: async function () {
-        return new Promise(resolve => {
-            setTimeout(() => resolve({ success: true }), 1000);
-        });
+        const config = await this.getWebhookConfig();
+        if (!config.enabled || !config.outgoingUrl) {
+            return { success: false, message: 'Webhook non configuré ou désactivé' };
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        const payload = {
+            event: 'test.ping',
+            data: {
+                user_id: user?.id,
+                message: 'Test de connexion W-JOB',
+                timestamp: new Date().toISOString()
+            }
+        };
+
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (config.secret) headers['X-Webhook-Secret'] = config.secret;
+
+            const response = await fetch(config.outgoingUrl, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(payload),
+                signal: AbortSignal.timeout(10000)
+            });
+
+            // Log the test in agent_actions
+            await supabase.from('agent_actions').insert({
+                user_id: user?.id,
+                event: 'test',
+                status: response.ok ? 'success' : 'error',
+                result: { message: `Test webhook — HTTP ${response.status}` }
+            });
+
+            return {
+                success: response.ok,
+                message: response.ok ? `Webhook actif (HTTP ${response.status})` : `Erreur HTTP ${response.status}`
+            };
+        } catch (e) {
+            return { success: false, message: `Erreur: ${e.message}` };
+        }
     },
 
     getWebhookLogs: async function () {
@@ -558,19 +633,57 @@ var API = {
         return { success: true };
     },
 
-    exportData: function () {
-        const data = { profile: "User Data", timestamp: new Date().toISOString() };
-        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    exportData: async function () {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Non connecté');
+
+        // Fetch all user data from Supabase
+        const [appsRes, jobsRes, recruitersRes, actionsRes, configRes] = await Promise.all([
+            supabase.from('applications').select('*').eq('user_id', user.id),
+            supabase.from('jobs').select('*'),
+            supabase.from('recruiters').select('*'),
+            supabase.from('agent_actions').select('*').eq('user_id', user.id),
+            supabase.from('webhook_config').select('*').eq('user_id', user.id)
+        ]);
+
+        const exportPayload = {
+            exportDate: new Date().toISOString(),
+            user: { id: user.id, email: user.email, metadata: user.user_metadata },
+            applications: appsRes.data || [],
+            jobs: jobsRes.data || [],
+            recruiters: recruitersRes.data || [],
+            agentActions: actionsRes.data || [],
+            webhookConfig: configRes.data || [],
+            consent: JSON.parse(localStorage.getItem('wjob_consent') || '{}')
+        };
+
+        const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'jobflow-export.json';
+        a.download = `wjob-export-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
+        URL.revokeObjectURL(url);
     },
 
     deleteData: async function () {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Non connecté');
+
+        // Delete user data from Supabase tables
+        await Promise.all([
+            supabase.from('applications').delete().eq('user_id', user.id),
+            supabase.from('agent_actions').delete().eq('user_id', user.id),
+            supabase.from('webhook_config').delete().eq('user_id', user.id)
+        ]);
+
+        // Clear local storage
         localStorage.clear();
-        return { success: true, message: "Toutes les données locales ont été supprimées." };
+
+        // Sign out
+        await supabase.auth.signOut();
+
+        return { success: true, message: "Toutes vos données ont été supprimées de la plateforme." };
     }
 };
 
