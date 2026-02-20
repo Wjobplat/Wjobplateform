@@ -54,16 +54,8 @@ function setupFileUpload() {
 
     // Handle Dropzone Click
     dropzone.addEventListener('click', (e) => {
-        // If clicking a button, do nothing (let button's listener handle it)
-        if (e.target.closest('button')) {
-            return;
-        }
-
-        // If a file is already selected, don't trigger file picker
-        if (selectedFile) {
-            return;
-        }
-
+        if (e.target.closest('button')) return;
+        if (selectedFile) return;
         input.click();
     });
 
@@ -108,7 +100,7 @@ function setupFileUpload() {
 
 function handleFile(file) {
     if (file.type !== 'application/pdf') {
-        showToast('Veuillez sélectionner un fichier PDF', 'error');
+        showToast('Veuillez s\u00e9lectionner un fichier PDF', 'error');
         return;
     }
     if (file.size > 10 * 1024 * 1024) {
@@ -130,7 +122,7 @@ function removeFile() {
 }
 
 // =============================================
-// STEP 2: AI ANALYSIS
+// STEP 2: AI ANALYSIS (REAL PROGRESS)
 // =============================================
 async function startAnalysis() {
     if (!selectedFile) return;
@@ -145,28 +137,32 @@ async function startAnalysis() {
     const bar = document.getElementById('analysis-bar');
     const statusText = document.getElementById('analysis-status-text');
 
-    // Animated progress steps
-    const steps = [
-        { text: 'Lecture du CV...', progress: 20 },
-        { text: 'Extraction des compétences...', progress: 45 },
-        { text: 'Analyse du profil...', progress: 70 },
-        { text: 'Génération du résumé...', progress: 90 },
-    ];
-
-    for (const step of steps) {
-        statusText.textContent = step.text;
-        bar.style.width = step.progress + '%';
-        await delay(600);
+    function setProgress(text, percent) {
+        statusText.textContent = text;
+        bar.style.width = percent + '%';
     }
 
     try {
+        // Step 1: Prepare file
+        setProgress('Pr\u00e9paration du fichier (' + (selectedFile.size / 1024).toFixed(0) + ' KB)...', 10);
         const formData = new FormData();
         formData.append('cv', selectedFile);
+
+        // Step 2: Upload to Supabase + send to webhook
+        setProgress('Upload du CV vers le serveur...', 25);
+
         const res = await API.analyzeCV(formData);
 
-        bar.style.width = '100%';
-        statusText.textContent = 'Terminé !';
-        await delay(400);
+        // Step 3: Show real result
+        if (res.webhookSent) {
+            setProgress('CV envoy\u00e9 \u00e0 l\'agent IA pour analyse...', 85);
+            await delay(500);
+            setProgress('Agent IA notifi\u00e9 avec succ\u00e8s !', 100);
+        } else {
+            setProgress('CV upload\u00e9 (configurez le webhook pour l\'analyse IA)', 100);
+        }
+
+        await delay(600);
 
         if (res.success) {
             analysisData = res;
@@ -174,8 +170,9 @@ async function startAnalysis() {
             maxStep = 3;
         }
     } catch (e) {
-        console.error(e);
-        showToast('Erreur lors de l\'analyse', 'error');
+        console.error('Analyse error:', e);
+        setProgress('Erreur', 0);
+        showToast("Erreur lors de l'analyse: " + (e.message || ''), 'error');
         goToStep(1);
     }
 }
@@ -187,13 +184,16 @@ function displayAnalysis(data) {
     const profile = document.getElementById('ai-profile');
     profile.innerHTML = `
         <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: var(--radius-lg); padding: var(--space-xl); margin-bottom: var(--space-lg);">
-            <h4 style="margin-bottom: var(--space-md); color: var(--color-primary-light); display:flex; align-items:center; gap:0.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg> Profil détecté</h4>
+            <h4 style="margin-bottom: var(--space-md); color: var(--color-primary-light); display:flex; align-items:center; gap:0.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg> R\u00e9sultat</h4>
             <p style="line-height: 1.8;">${data.analysis}</p>
         </div>
         <div>
-            <h4 style="margin-bottom: var(--space-md); display:flex; align-items:center; gap:0.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg> Compétences identifiées</h4>
+            <h4 style="margin-bottom: var(--space-md); display:flex; align-items:center; gap:0.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg> Comp\u00e9tences identifi\u00e9es</h4>
             <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">
-                ${data.recommendations.map(r => `<span class="skill-tag">${r}</span>`).join('')}
+                ${data.recommendations && data.recommendations.length > 0
+            ? data.recommendations.map(r => `<span class="skill-tag">${r}</span>`).join('')
+            : '<span style="color: var(--color-text-muted);">En attente de l\'analyse par l\'agent IA</span>'
+        }
             </div>
         </div>
     `;
@@ -224,7 +224,7 @@ async function startSearch() {
                 id: job.id,
                 title: job.title,
                 company: job.company,
-                location: job.location || 'Non spécifié',
+                location: job.location || 'Non sp\u00e9cifi\u00e9',
                 contract: job.contract_type || 'CDI',
                 description: job.description || 'Aucune description disponible.',
                 recruiter: { name: recruiter.name, email: recruiter.email, linkedin: recruiter.linkedin || '' },
@@ -237,9 +237,9 @@ async function startSearch() {
         document.getElementById('search-results').classList.remove('hidden');
 
         if (searchResults.length === 0) {
-            document.getElementById('results-count').textContent = 'Aucun emploi trouvé. Ajoutez des offres dans l\'onglet Emplois.';
+            document.getElementById('results-count').textContent = "Aucun emploi trouv\u00e9. Ajoutez des offres dans l'onglet Emplois.";
         } else {
-            document.getElementById('results-count').textContent = `${searchResults.length} résultat(s) trouvé(s)`;
+            document.getElementById('results-count').textContent = `${searchResults.length} r\u00e9sultat(s) trouv\u00e9(s)`;
         }
 
         renderResults();
@@ -272,17 +272,17 @@ function renderResults() {
                     <span class="badge badge-sent">${job.contract}</span>
                 </div>
                 <div style="display: flex; gap: var(--space-md); color: var(--color-text-secondary); font-size: 0.82rem; margin-bottom: var(--space-md);">
-                    <span>📍 ${job.location}</span>
+                    <span>\ud83d\udccd ${job.location}</span>
                 </div>
                 <p style="color: var(--color-text-secondary); font-size: 0.85rem; line-height: 1.6; margin-bottom: var(--space-md);">${job.description}</p>
             </div>
 
             <div style="margin-bottom: var(--space-lg);">
                 <div style="margin-bottom: var(--space-sm);">
-                    ${job.strengths.map(s => `<span class="result-tag tag-strength">✓ ${s}</span>`).join('')}
+                    ${job.strengths.map(s => `<span class="result-tag tag-strength">\u2713 ${s}</span>`).join('')}
                 </div>
                 <div>
-                    ${job.weaknesses.map(w => `<span class="result-tag tag-weakness">⚠ ${w}</span>`).join('')}
+                    ${job.weaknesses.map(w => `<span class="result-tag tag-weakness">\u26a0 ${w}</span>`).join('')}
                 </div>
             </div>
 
@@ -341,12 +341,12 @@ async function generateEmails() {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg);">
                 <div>
                     <div style="font-weight: 700;">${job.title}</div>
-                    <div style="color: var(--color-text-secondary); font-size: 0.85rem;">${job.company} — ${job.recruiter.name}</div>
+                    <div style="color: var(--color-text-secondary); font-size: 0.85rem;">${job.company} \u2014 ${job.recruiter.name}</div>
                 </div>
                 <span class="badge badge-pending">Brouillon</span>
             </div>
             <div id="email-content-${job.id}" style="background: var(--color-bg-tertiary); padding: var(--space-lg); border-radius: var(--radius-md); font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap; margin-bottom: var(--space-md);">
-                Génération en cours...
+                G\u00e9n\u00e9ration en cours...
             </div>
             <div style="display: flex; gap: var(--space-sm); justify-content: flex-end;">
                 <button class="btn btn-secondary btn-sm" onclick="editEmail(${job.id})">Modifier</button>
@@ -360,12 +360,12 @@ async function generateEmails() {
             wrapper.style.opacity = '1';
         }, i * 150);
 
-        // Generate email with mock AI
+        // Generate email via webhook or local template
         try {
             const res = await API.generateAiEmail({ job });
             document.getElementById(`email-content-${job.id}`).textContent = res.email;
         } catch (e) {
-            document.getElementById(`email-content-${job.id}`).textContent = 'Erreur de génération.';
+            document.getElementById(`email-content-${job.id}`).textContent = 'Erreur de g\u00e9n\u00e9ration.';
         }
     }
 }
@@ -404,10 +404,10 @@ async function sendSingleApplication(jobId) {
             sent_date: new Date().toISOString().slice(0, 10)
         });
 
-        showToast(`Candidature envoyée pour ${job.title}`, 'success');
+        showToast(`Candidature envoy\u00e9e pour ${job.title}`, 'success');
     } catch (e) {
         console.error('Send error:', e);
-        showToast('Erreur lors de l\'envoi', 'error');
+        showToast("Erreur lors de l'envoi", 'error');
     }
 }
 
@@ -435,7 +435,7 @@ async function sendAllApplications() {
         }
     }
 
-    showToast(`${sent}/${count} candidature(s) envoyée(s) avec succès !`, 'success');
+    showToast(`${sent}/${count} candidature(s) envoy\u00e9e(s) avec succ\u00e8s !`, 'success');
     setTimeout(() => {
         window.location.href = 'candidatures.html';
     }, 2000);
