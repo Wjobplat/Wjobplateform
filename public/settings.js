@@ -29,13 +29,13 @@ async function saveProfile() {
             lastName: document.getElementById('profile-lastname').value.trim(),
             email: document.getElementById('profile-email').value.trim()
         });
-        showToast('Profil mis à jour avec succès', 'success');
-        statusEl.textContent = '✓ Enregistré';
+        showToast('Profil mis \u00e0 jour avec succ\u00e8s', 'success');
+        statusEl.textContent = '\u2713 Enregistr\u00e9';
         statusEl.style.color = 'var(--color-primary)';
         setTimeout(() => { statusEl.textContent = ''; }, 3000);
     } catch (e) {
         showToast(e.message || 'Erreur lors de la sauvegarde', 'error');
-        statusEl.textContent = '✗ Erreur';
+        statusEl.textContent = '\u2717 Erreur';
         statusEl.style.color = 'var(--color-danger)';
     }
 }
@@ -47,9 +47,6 @@ async function checkAdminAccess() {
         if (isAdmin) {
             const adminSection = document.getElementById('admin-section');
             if (adminSection) adminSection.style.display = 'block';
-
-            const webhookSection = document.getElementById('webhook-section');
-            if (webhookSection) webhookSection.style.display = 'block';
         }
     } catch (e) { console.error('Admin check failed', e); }
 }
@@ -81,6 +78,7 @@ async function loadConfig() {
     } catch (e) {
         console.warn('Webhook config not available (table may not exist yet):', e.message);
         // Set sensible defaults so the UI is not stuck on "Chargement..."
+        if (incomingEl) incomingEl.textContent = `${siteUrl}/api/webhook`;
         const outEl = document.getElementById('outgoing-url');
         if (outEl) outEl.value = '';
         const secEl = document.getElementById('webhook-secret');
@@ -103,29 +101,35 @@ async function saveConfig() {
                 'application.status_changed': document.getElementById('evt-status-changed').checked
             }
         });
-        showToast('Configuration enregistrée', 'success');
-    } catch (e) { showToast('Erreur de sauvegarde', 'error'); }
+        showToast('Configuration webhook enregistr\u00e9e', 'success');
+    } catch (e) {
+        console.error('Webhook save error:', e);
+        showToast('Erreur: ' + (e.message || 'Sauvegarde impossible'), 'error');
+    }
 }
 
 async function testWebhook() {
     try {
         const result = await API.testWebhook();
-        if (result.success) showToast('Test webhook réussi !', 'success');
-        else showToast(result.message || 'Test échoué', 'warning');
+        if (result.success) showToast('Test webhook r\u00e9ussi !', 'success');
+        else showToast(result.message || 'Test \u00e9chou\u00e9', 'warning');
         loadLogs();
-    } catch (e) { showToast('Erreur du test', 'error'); }
+    } catch (e) {
+        console.error('Webhook test error:', e);
+        showToast('Erreur du test: ' + (e.message || ''), 'error');
+    }
 }
 
 function copySecret() {
     const secret = document.getElementById('webhook-secret').value;
-    navigator.clipboard.writeText(secret).then(() => showToast('Secret copié !', 'success'));
+    navigator.clipboard.writeText(secret).then(() => showToast('Secret copi\u00e9 !', 'success'));
 }
 
 async function loadLogs() {
     try {
         const logs = await API.getWebhookLogs();
         const container = document.getElementById('webhook-logs');
-        if (!logs.length) { container.innerHTML = '<p style="text-align: center; color: var(--color-text-muted); padding: var(--space-lg);">Aucun événement enregistré</p>'; return; }
+        if (!logs.length) { container.innerHTML = '<p style="text-align: center; color: var(--color-text-muted); padding: var(--space-lg);">Aucun \u00e9v\u00e9nement enregistr\u00e9</p>'; return; }
         container.innerHTML = '';
         logs.forEach(log => {
             const div = document.createElement('div');
@@ -158,22 +162,22 @@ async function saveConsent() {
             analytics: document.getElementById('consent-analytics').checked,
             webhookSharing: document.getElementById('consent-webhook').checked
         });
-        showToast('Consentements mis à jour', 'success');
+        showToast('Consentements mis \u00e0 jour', 'success');
     } catch (e) { showToast('Erreur de sauvegarde', 'error'); }
 }
 
 async function exportData() {
     try {
         await API.exportData();
-        showToast('Export téléchargé', 'success');
+        showToast('Export t\u00e9l\u00e9charg\u00e9', 'success');
     } catch (e) {
         showToast("Erreur lors de l'export", 'error');
     }
 }
 
 async function deleteData() {
-    if (!confirm('ATTENTION : Cette action est irréversible.\nToutes vos données seront supprimées.\n\nÊtes-vous sûr de vouloir continuer ?')) return;
-    if (!confirm('Dernière confirmation : voulez-vous vraiment supprimer TOUTES vos données ?')) return;
+    if (!confirm('ATTENTION : Cette action est irr\u00e9versible.\nToutes vos donn\u00e9es seront supprim\u00e9es.\n\n\u00cates-vous s\u00fbr de vouloir continuer ?')) return;
+    if (!confirm('Derni\u00e8re confirmation : voulez-vous vraiment supprimer TOUTES vos donn\u00e9es ?')) return;
     try {
         const result = await API.deleteData();
         showToast(result.message, 'success');
