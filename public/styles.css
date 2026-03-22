@@ -833,7 +833,7 @@ a:hover {
 }
 
 .step-wizard-item.completed .step-wizard-number::after {
-  content: '✓';
+  content: 'â';
   position: absolute;
 }
 
@@ -976,7 +976,7 @@ a:hover {
 }
 
 .search-bar::before {
-  content: '🔍';
+  content: 'ð';
   position: absolute;
   left: 12px;
   top: 50%;
@@ -1569,3 +1569,4 @@ a:hover {
     padding: var(--space-xl);
   }
 }
+ 
