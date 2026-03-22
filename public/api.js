@@ -72,9 +72,7 @@ var API = {
     isAdmin: async function () {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return false;
-        // Allow if local override is set (useful for setup)
         if (localStorage.getItem('wjob_admin_override') === 'true') return true;
-        // Strict check on user metadata role
         return user.user_metadata?.role === 'admin';
     },
 
@@ -95,7 +93,6 @@ var API = {
             console.error('Supabase getJobs error:', error);
             throw error;
         }
-        // Map snake_case to camelCase for frontend compatibility
         return (data || []).map(job => ({
             id: job.id,
             company: job.company,
@@ -134,10 +131,6 @@ var API = {
 
         if (error) throw error;
 
-        // Flatten structure to match old API if necessary, or adapt frontend.
-        // Frontend expects: { ..., job: { company, ... } } which Supabase provides.
-        // We might need to map snake_case to camelCase if frontend relies on it.
-        // For now, let's map it to keep frontend happy.
         return data.map(app => {
             const jobData = Array.isArray(app.job) ? app.job[0] : app.job;
             return {
@@ -218,14 +211,12 @@ var API = {
 
         const fileName = `cv-${Date.now()}-${file.name}`;
 
-        // 1. Upload to Storage
         const { error: uploadError } = await supabase.storage
             .from('cvs')
             .upload(fileName, file);
 
         if (uploadError) throw uploadError;
 
-        // 2. Update Application Record
         const { error: dbError } = await supabase
             .from('applications')
             .update({ cv_path: fileName })
@@ -245,7 +236,6 @@ var API = {
 
     // Dashboard
     getStats: async function () {
-        // Real queries for all dashboard stats
         const [jobsRes, appsRes, recruitersRes] = await Promise.all([
             supabase.from('jobs').select('company', { count: 'exact' }),
             supabase.from('applications').select('status', { count: 'exact' }),
@@ -290,7 +280,7 @@ var API = {
         }));
     },
 
-    // Agent (Supabase Powered)
+    // Agent
     getAgentStatus: async function () {
         const { data, error } = await supabase
             .from('agent_actions')
@@ -299,14 +289,12 @@ var API = {
             .limit(1)
             .single();
 
-        // If no actions, return default status
         if (error && error.code !== 'PGRST116') throw error;
 
         const { count } = await supabase
             .from('agent_actions')
             .select('*', { count: 'exact', head: true });
 
-        // Agent is considered "connected" if there's been activity in the last 24h
         const lastActivity = data ? new Date(data.created_at) : null;
         const isConnected = lastActivity && (Date.now() - lastActivity.getTime() < 86400000);
 
@@ -342,7 +330,6 @@ var API = {
 
         const { data: { user } } = await supabase.auth.getUser();
 
-        // 1. Log the intent locally
         await supabase.from('agent_actions').insert({
             event: `manual.${action}`,
             user_id: user.id,
@@ -350,7 +337,6 @@ var API = {
             result: { message: `Déclenchement manuel de ${action}` }
         });
 
-        // 2. Call the trigger endpoint (relative to host for Vercel/Local compatibility)
         try {
             const response = await fetch(config.outgoingUrl, {
                 method: 'POST',
@@ -372,7 +358,6 @@ var API = {
     },
 
     generateAiEmail: async function (data) {
-        // Try to send to webhook agent for real AI generation
         try {
             const config = await this.getWebhookConfig();
             if (config.enabled && config.outgoingUrl) {
@@ -417,15 +402,17 @@ var API = {
         };
     },
 
+    // ============================================================
+    // analyzeCV — VERSION CORRIGÉE : lit la réponse de l'agent IA
+    // ============================================================
     analyzeCV: async function (formData) {
         const file = formData.get('cv');
         if (!file) throw new Error('Aucun fichier CV fourni');
 
-        // 1. Get current user
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Utilisateur non connecté');
 
-        // 2. Upload CV to Supabase Storage
+        // 1. Upload CV to Supabase Storage
         const fileName = `cv-${Date.now()}-${file.name}`;
         const { error: uploadError } = await supabase.storage
             .from('cvs')
@@ -433,7 +420,6 @@ var API = {
 
         let cvUrl = null;
         if (!uploadError) {
-            // Generate a signed URL valid for 1 hour
             const { data: signedData } = await supabase.storage
                 .from('cvs')
                 .createSignedUrl(`${user.id}/${fileName}`, 3600);
@@ -442,7 +428,7 @@ var API = {
             console.warn('CV upload to storage failed, continuing without URL:', uploadError.message);
         }
 
-        // 3. Load webhook config and send to outgoing webhook (AI agent)
+        // 2. Send to AI Agent webhook and READ the response
         let webhookSent = false;
         try {
             const config = await this.getWebhookConfig();
@@ -459,26 +445,39 @@ var API = {
                 };
 
                 const headers = { 'Content-Type': 'application/json' };
-                if (config.secret) {
-                    // Simple signature for verification
-                    headers['X-Webhook-Secret'] = config.secret;
-                }
+                if (config.secret) headers['X-Webhook-Secret'] = config.secret;
 
                 const response = await fetch(config.outgoingUrl, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify(payload)
                 });
-                webhookSent = response.ok;
-                console.log(`[W-JOB] Webhook cv.uploaded envoyé à ${config.outgoingUrl} — status: ${response.status}`);
+
+                console.log(`[W-JOB] Webhook cv.uploaded → status: ${response.status}`);
+
+                // ✅ FIX: Read the agent's response and return real data
+                if (response.ok) {
+                    const agentResult = await response.json();
+                    console.log('[W-JOB] Agent response:', agentResult);
+
+                    return {
+                        success: true,
+                        analysis: agentResult.profile?.summary || agentResult.analysis || agentResult.message || "CV analysé avec succès par l'agent IA.",
+                        recommendations: agentResult.profile?.skills || [],
+                        jobs_found: agentResult.jobs_found || 0,
+                        profile: agentResult.profile || {},
+                        webhookSent: true,
+                        cvUrl
+                    };
+                }
             } else {
-                console.log('[W-JOB] Webhook sortant non configuré ou désactivé. Le CV a été uploadé mais pas envoyé à l\'agent.');
+                console.log('[W-JOB] Webhook sortant non configuré ou désactivé.');
             }
         } catch (webhookErr) {
             console.error('[W-JOB] Erreur envoi webhook:', webhookErr.message);
         }
 
-        // 4. Return result
+        // Fallback if webhook fails or not configured
         return {
             success: true,
             analysis: webhookSent
@@ -501,7 +500,6 @@ var API = {
                 .eq('user_id', user.id)
                 .single();
 
-            // PGRST116 = no rows found, 42P01 = table doesn't exist, 42501 = RLS denied
             if (error && !['PGRST116', '42P01', '42501'].includes(error.code)) {
                 console.warn('Webhook config error:', error);
             }
@@ -545,7 +543,7 @@ var API = {
             outgoing_url: config.outgoingUrl,
             enabled: config.enabled,
             events: config.events,
-            secret: config.secret // Secret is usually generated once, but can be saved here
+            secret: config.secret
         };
 
         const { error } = await supabase
@@ -583,7 +581,6 @@ var API = {
                 signal: AbortSignal.timeout(10000)
             });
 
-            // Log the test in agent_actions
             await supabase.from('agent_actions').insert({
                 user_id: user?.id,
                 event: 'test',
@@ -618,7 +615,6 @@ var API = {
         }));
     },
 
-    // Consent (Mocked)
     getConsent: async function () {
         const stored = localStorage.getItem('wjob_consent');
         return stored ? JSON.parse(stored) : {
@@ -637,7 +633,6 @@ var API = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Non connecté');
 
-        // Fetch all user data from Supabase
         const [appsRes, jobsRes, recruitersRes, actionsRes, configRes] = await Promise.all([
             supabase.from('applications').select('*').eq('user_id', user.id),
             supabase.from('jobs').select('*'),
@@ -670,24 +665,20 @@ var API = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Non connecté');
 
-        // Delete user data from Supabase tables
         await Promise.all([
             supabase.from('applications').delete().eq('user_id', user.id),
             supabase.from('agent_actions').delete().eq('user_id', user.id),
             supabase.from('webhook_config').delete().eq('user_id', user.id)
         ]);
 
-        // Clear local storage
         localStorage.clear();
-
-        // Sign out
         await supabase.auth.signOut();
 
         return { success: true, message: "Toutes vos données ont été supprimées de la plateforme." };
     }
 };
 
-// Helper functions (Unchanged)
+// Helper functions
 function formatDate(dateString) {
     if (!dateString) return '—';
     const date = new Date(dateString);
@@ -712,7 +703,6 @@ function formatRelativeTime(isoString) {
     return `Il y a ${days}j`;
 }
 
-// Toast notifications (Unchanged)
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -733,12 +723,11 @@ function showToast(message, type = 'info') {
     }, 4000);
 }
 
-// Auto-admin via URL parameter (e.g., settings.html?admin=1)
+// Auto-admin via URL parameter
 (function () {
     const params = new URLSearchParams(window.location.search);
     if (params.get('admin') === '1') {
         localStorage.setItem('wjob_admin_override', 'true');
-        // Clean up URL and reload
         const newUrl = window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
         location.reload();
@@ -751,7 +740,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         const isAdmin = await API.isAdmin();
         if (isAdmin) {
             document.querySelectorAll('[data-admin-only]').forEach(el => {
-                // Determine appropriate display mode
                 if (el.tagName === 'A' && el.classList.contains('top-nav-link')) {
                     el.style.display = 'flex';
                 } else {
