@@ -15,6 +15,162 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-client.js"></script>
     <script src="api.js"></script>
+    <style>
+        /* ── Jobs Hero ── */
+        .jobs-hero {
+            position: relative;
+            padding: 2.5rem 0 2rem;
+            overflow: hidden;
+        }
+        .jobs-hero-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.12;
+            pointer-events: none;
+            animation: orbFloat 9s ease-in-out infinite;
+        }
+        .jobs-hero-orb-1 { width: 280px; height: 280px; background: #10B981; top: -80px; right: 5%; animation-delay: 0s; }
+        .jobs-hero-orb-2 { width: 180px; height: 180px; background: #3B82F6; top: 30px; right: 38%; animation-delay: -3.5s; }
+        .jobs-hero-orb-3 { width: 140px; height: 140px; background: #8B5CF6; top: -20px; right: 22%; animation-delay: -6s; }
+        @keyframes orbFloat { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-28px) scale(1.08)} }
+
+        .jobs-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.85rem;
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.22);
+            border-radius: 999px;
+            font-size: 0.75rem;
+            color: #10B981;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.9rem;
+            animation: fadeUp 0.5s ease both;
+        }
+        .jobs-badge-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #10B981;
+            animation: pulseDot 2s ease-in-out infinite;
+        }
+        .jobs-hero-title {
+            font-size: clamp(1.7rem, 4vw, 2.6rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            margin-bottom: 0.75rem;
+            animation: fadeUp 0.5s ease 0.08s both;
+        }
+        .jobs-hero-title span {
+            background: linear-gradient(135deg, #10B981, #3B82F6, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .jobs-hero-sub {
+            color: var(--color-text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            max-width: 520px;
+            animation: fadeUp 0.5s ease 0.16s both;
+        }
+        .jobs-stat-chips {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            animation: fadeUp 0.5s ease 0.24s both;
+        }
+        .jobs-stat-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .chip-green { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #10B981; }
+        .chip-blue  { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); color: #60A5FA; }
+        .chip-purple{ background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25); color: #A78BFA; }
+
+        /* ── Filters ── */
+        .filters-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeUp 0.5s ease 0.32s both;
+        }
+        .filters-card:hover { border-color: rgba(16,185,129,0.3); }
+        .filters-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            gap: 0.9rem;
+            align-items: end;
+        }
+        @media (max-width: 900px) { .filters-row { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 520px) { .filters-row { grid-template-columns: 1fr; } }
+        .filter-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .filter-group label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--color-text-muted);
+        }
+        .filter-input, .filter-select {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--glass-border);
+            color: var(--color-text-primary);
+            border-radius: 10px;
+            padding: 0.6rem 0.85rem;
+            font-size: 0.88rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            width: 100%;
+        }
+        .filter-input:focus, .filter-select:focus {
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+        }
+
+        /* ── Results bar ── */
+        .results-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            animation: fadeUp 0.4s ease 0.38s both;
+        }
+        .results-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.35rem 0.85rem;
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 999px;
+            font-size: 0.82rem;
+            color: #10B981;
+            font-weight: 700;
+        }
+        .results-badge-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: #10B981;
+        }
+
+        /* ── Keyframes ── */
+        @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    </style>
 </head>
 
 <body>
@@ -33,8 +189,7 @@
                     Démarrer
                 </a>
                 <a href="index.html" class="top-nav-link">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="7" height="7"></rect>
                         <rect x="14" y="3" width="7" height="7"></rect>
                         <rect x="14" y="14" width="7" height="7"></rect>
@@ -43,16 +198,14 @@
                     Dashboard
                 </a>
                 <a href="jobs.html" class="top-nav-link active">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                     Emplois
                 </a>
                 <a href="candidatures.html" class="top-nav-link">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                         <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -61,8 +214,7 @@
                     Candidatures
                 </a>
                 <a href="recruiters.html" class="top-nav-link">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -73,33 +225,28 @@
             </div>
             <div class="top-nav-actions">
                 <button class="top-nav-action" onclick="toggleTheme()" title="Thème">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" data-theme-icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
                 </button>
                 <a href="settings.html" class="top-nav-action" title="Paramètres">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3"></circle>
-                        <path
-                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                        </path>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                     </svg>
                 </a>
                 <button onclick="API.logout()" class="top-nav-action" title="Déconnexion">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                         <polyline points="16 17 21 12 16 7"></polyline>
                         <line x1="21" y1="12" x2="9" y2="12"></line>
                     </svg>
                 </button>
             </div>
-            <button class="top-nav-toggle"
-                onclick="document.getElementById('mobile-menu').classList.toggle('open')"><span></span><span></span><span></span></button>
+            <button class="top-nav-toggle" onclick="document.getElementById('mobile-menu').classList.toggle('open')"><span></span><span></span><span></span></button>
         </div>
     </nav>
+
     <div id="mobile-menu" class="top-nav-mobile-menu">
         <a href="applications.html" class="top-nav-link">Démarrer</a>
         <a href="index.html" class="top-nav-link">Dashboard</a>
@@ -111,20 +258,45 @@
 
     <div class="app-container">
         <main class="main-content">
-            <header class="page-header fade-in">
-                <h1 class="page-title">Recherche d'emplois</h1>
-                <p class="page-subtitle">Découvrez les meilleures opportunités pour votre profil</p>
-            </header>
 
-            <div class="filters-container fade-in">
-                <div class="filters-grid">
+            <!-- Hero -->
+            <div class="jobs-hero">
+                <div class="jobs-hero-orb jobs-hero-orb-1"></div>
+                <div class="jobs-hero-orb jobs-hero-orb-2"></div>
+                <div class="jobs-hero-orb jobs-hero-orb-3"></div>
+                <div style="position: relative;">
+                    <div class="jobs-hero-badge">
+                        <span class="jobs-badge-dot"></span>
+                        Offres en temps réel
+                    </div>
+                    <h1 class="jobs-hero-title">Explorez les <span>Opportunités</span></h1>
+                    <p class="jobs-hero-sub">Trouvez le poste qui correspond exactement à votre ambition — analysé et scoré par l'IA.</p>
+                    <div class="jobs-stat-chips">
+                        <span class="jobs-stat-chip chip-green">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            2 847 offres actives
+                        </span>
+                        <span class="jobs-stat-chip chip-blue">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 7V5a2 2 0 0 0-4 0v2"></path></svg>
+                            94 entreprises
+                        </span>
+                        <span class="jobs-stat-chip chip-purple">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path></svg>
+                            🤖 IA compatible
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-card">
+                <div class="filters-row">
                     <div class="filter-group">
-                        <label class="filter-label">Recherche</label>
-                        <input type="text" class="filter-input" id="filter-search"
-                            placeholder="Titre, entreprise, compétences...">
+                        <label for="filter-search">Recherche</label>
+                        <input type="text" class="filter-input" id="filter-search" placeholder="Titre, compétences…">
                     </div>
                     <div class="filter-group">
-                        <label class="filter-label">Localisation</label>
+                        <label for="filter-location">Localisation</label>
                         <select class="filter-select" id="filter-location">
                             <option value="">Toutes</option>
                             <option value="remote">Remote</option>
@@ -135,7 +307,7 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label class="filter-label">Contrat</label>
+                        <label for="filter-contract">Contrat</label>
                         <select class="filter-select" id="filter-contract">
                             <option value="">Tous</option>
                             <option value="CDI">CDI</option>
@@ -144,7 +316,7 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label class="filter-label">Compatibilité</label>
+                        <label for="filter-compatibility">Compatibilité</label>
                         <select class="filter-select" id="filter-compatibility">
                             <option value="0">Toutes</option>
                             <option value="90">90%+</option>
@@ -153,25 +325,26 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label class="filter-label">&nbsp;</label>
-                        <button class="btn btn-secondary" onclick="resetFilters()"
-                            style="width: 100%;">Réinitialiser</button>
+                        <label>&nbsp;</label>
+                        <button class="btn btn-secondary" onclick="resetFilters()" style="white-space:nowrap;">Réinitialiser</button>
                     </div>
                 </div>
             </div>
 
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg);">
-                <span style="color: var(--color-text-secondary); font-size: 0.9rem;">
+            <!-- Results bar -->
+            <div class="results-bar">
+                <div class="results-badge">
+                    <span class="results-badge-dot"></span>
                     <span id="results-count">0</span> offres trouvées
-                </span>
-                <select class="filter-select" id="sort-by" style="width: auto;">
+                </div>
+                <select class="filter-select" id="sort-by" style="width:auto; font-size:0.85rem;">
                     <option value="compatibility">Compatibilité</option>
                     <option value="date">Date</option>
                     <option value="company">Entreprise</option>
                 </select>
             </div>
 
+            <!-- Job grid -->
             <div class="job-grid" id="job-grid"></div>
 
             <footer class="site-footer">
@@ -185,6 +358,7 @@
         </main>
     </div>
 
+    <!-- Modal -->
     <div id="job-modal" class="modal hidden">
         <div class="modal-overlay" onclick="closeJobModal()"></div>
         <div class="modal-content">
