@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>W-JOB — Recruteurs</title>
+    <meta name="description" content="Gérez vos contacts recruteurs et suivez vos interactions.">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,12 +15,140 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-client.js"></script>
     <script src="api.js"></script>
+    <style>
+        /* ── Recruiters Hero ── */
+        .rec-hero {
+            position: relative;
+            padding: 2.5rem 0 1.5rem;
+            overflow: hidden;
+        }
+        .rec-hero-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.1;
+            pointer-events: none;
+            animation: recOrbFloat 10s ease-in-out infinite;
+        }
+        .rec-hero-orb-1 { width: 260px; height: 260px; background: #3B82F6; top: -60px; right: 8%; animation-delay: 0s; }
+        .rec-hero-orb-2 { width: 160px; height: 160px; background: #10B981; top: 20px; right: 30%; animation-delay: -4s; }
+        @keyframes recOrbFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-22px)} }
+
+        .rec-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.85rem;
+            background: rgba(59,130,246,0.08);
+            border: 1px solid rgba(59,130,246,0.22);
+            border-radius: 999px;
+            font-size: 0.75rem;
+            color: #60A5FA;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.9rem;
+            animation: fadeUp 0.5s ease both;
+        }
+        .rec-badge-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #3B82F6;
+            animation: pulseDot 2s ease-in-out infinite;
+        }
+        .rec-hero-title {
+            font-size: clamp(1.7rem, 4vw, 2.6rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            margin-bottom: 0.6rem;
+            animation: fadeUp 0.5s ease 0.08s both;
+        }
+        .rec-hero-title span {
+            background: linear-gradient(135deg, #3B82F6, #10B981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .rec-hero-sub {
+            color: var(--color-text-secondary);
+            font-size: 0.95rem;
+            max-width: 480px;
+            animation: fadeUp 0.5s ease 0.16s both;
+        }
+
+        /* ── KPI Cards upgraded ── */
+        .rec-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        @media (max-width: 640px) { .rec-kpi-grid { grid-template-columns: 1fr; } }
+        .rec-kpi-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            animation: fadeUp 0.5s ease both;
+        }
+        .rec-kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+        }
+        .rec-kpi-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 60%, rgba(255,255,255,0.03));
+            border-radius: inherit;
+        }
+        .rec-kpi-card:nth-child(1) { animation-delay: 0.05s; border-color: rgba(59,130,246,0.2); }
+        .rec-kpi-card:nth-child(1):hover { border-color: rgba(59,130,246,0.45); box-shadow: 0 8px 28px rgba(59,130,246,0.1); }
+        .rec-kpi-card:nth-child(2) { animation-delay: 0.12s; border-color: rgba(16,185,129,0.2); }
+        .rec-kpi-card:nth-child(2):hover { border-color: rgba(16,185,129,0.45); box-shadow: 0 8px 28px rgba(16,185,129,0.1); }
+        .rec-kpi-card:nth-child(3) { animation-delay: 0.19s; border-color: rgba(139,92,246,0.2); }
+        .rec-kpi-card:nth-child(3):hover { border-color: rgba(139,92,246,0.45); box-shadow: 0 8px 28px rgba(139,92,246,0.1); }
+
+        .rec-kpi-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        .icon-blue   { background: rgba(59,130,246,0.12); }
+        .icon-green  { background: rgba(16,185,129,0.12); }
+        .icon-purple { background: rgba(139,92,246,0.12); }
+
+        .rec-kpi-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin-bottom: 0.35rem;
+        }
+        .rec-kpi-label {
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    </style>
 </head>
 
 <body>
     <nav class="top-nav">
         <div class="top-nav-inner">
-            <a href="index.html" class="top-nav-brand"><img src="wjob-logo.svg" alt="W-JOB"></a>
+            <a href="index.html" class="top-nav-brand">
+                <img src="wjob-logo.svg" alt="W-JOB">
+            </a>
             <div class="top-nav-links">
                 <a href="applications.html" class="top-nav-link">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -30,8 +159,7 @@
                     Démarrer
                 </a>
                 <a href="index.html" class="top-nav-link">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="7" height="7"></rect>
                         <rect x="14" y="3" width="7" height="7"></rect>
                         <rect x="14" y="14" width="7" height="7"></rect>
@@ -40,16 +168,14 @@
                     Dashboard
                 </a>
                 <a href="jobs.html" class="top-nav-link">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                     Emplois
                 </a>
                 <a href="candidatures.html" class="top-nav-link">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                         <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -58,8 +184,7 @@
                     Candidatures
                 </a>
                 <a href="recruiters.html" class="top-nav-link active">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -70,33 +195,28 @@
             </div>
             <div class="top-nav-actions">
                 <button class="top-nav-action" onclick="toggleTheme()" title="Thème">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" data-theme-icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
                 </button>
                 <a href="settings.html" class="top-nav-action" title="Paramètres">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3"></circle>
-                        <path
-                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                        </path>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                     </svg>
                 </a>
                 <button onclick="API.logout()" class="top-nav-action" title="Déconnexion">
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                         <polyline points="16 17 21 12 16 7"></polyline>
                         <line x1="21" y1="12" x2="9" y2="12"></line>
                     </svg>
                 </button>
             </div>
-            <button class="top-nav-toggle"
-                onclick="document.getElementById('mobile-menu').classList.toggle('open')"><span></span><span></span><span></span></button>
+            <button class="top-nav-toggle" onclick="document.getElementById('mobile-menu').classList.toggle('open')"><span></span><span></span><span></span></button>
         </div>
     </nav>
+
     <div id="mobile-menu" class="top-nav-mobile-menu">
         <a href="applications.html" class="top-nav-link">Démarrer</a>
         <a href="index.html" class="top-nav-link">Dashboard</a>
@@ -108,38 +228,41 @@
 
     <div class="app-container">
         <main class="main-content">
-            <header class="page-header fade-in">
-                <h1 class="page-title">Recruteurs</h1>
-                <p class="page-subtitle">Gérez vos contacts recruteurs</p>
-            </header>
 
-            <div class="kpi-grid fade-in" style="margin-bottom: var(--space-2xl);">
-                <div class="kpi-card stagger-1">
-                    <div style="text-align: center;">
-                        <div style="font-size: 2rem; margin-bottom: var(--space-xs);">👥</div>
-                        <div style="font-size: 1.8rem; font-weight: 800; margin-bottom: var(--space-xs);"
-                            id="total-recruiters">0</div>
-                        <div style="color: var(--color-text-secondary); font-size: 0.8rem;">Recruteurs identifiés</div>
+            <!-- Hero -->
+            <div class="rec-hero">
+                <div class="rec-hero-orb rec-hero-orb-1"></div>
+                <div class="rec-hero-orb rec-hero-orb-2"></div>
+                <div style="position: relative;">
+                    <div class="rec-hero-badge">
+                        <span class="rec-badge-dot"></span>
+                        Réseau de contacts
                     </div>
-                </div>
-                <div class="kpi-card stagger-2">
-                    <div style="text-align: center;">
-                        <div style="font-size: 2rem; margin-bottom: var(--space-xs);">🏢</div>
-                        <div style="font-size: 1.8rem; font-weight: 800; margin-bottom: var(--space-xs);"
-                            id="total-companies">0</div>
-                        <div style="color: var(--color-text-secondary); font-size: 0.8rem;">Entreprises</div>
-                    </div>
-                </div>
-                <div class="kpi-card stagger-3">
-                    <div style="text-align: center;">
-                        <div style="font-size: 2rem; margin-bottom: var(--space-xs);">📧</div>
-                        <div style="font-size: 1.8rem; font-weight: 800; margin-bottom: var(--space-xs);"
-                            id="total-contacts">0</div>
-                        <div style="color: var(--color-text-secondary); font-size: 0.8rem;">Contacts établis</div>
-                    </div>
+                    <h1 class="rec-hero-title">Vos <span>Recruteurs</span></h1>
+                    <p class="rec-hero-sub">Gérez vos contacts recruteurs et suivez l'historique de vos interactions professionnelles.</p>
                 </div>
             </div>
 
+            <!-- KPI Cards -->
+            <div class="rec-kpi-grid">
+                <div class="rec-kpi-card">
+                    <div class="rec-kpi-icon icon-blue">👥</div>
+                    <div class="rec-kpi-value" id="total-recruiters">0</div>
+                    <div class="rec-kpi-label">Recruteurs identifiés</div>
+                </div>
+                <div class="rec-kpi-card">
+                    <div class="rec-kpi-icon icon-green">🏢</div>
+                    <div class="rec-kpi-value" id="total-companies">0</div>
+                    <div class="rec-kpi-label">Entreprises</div>
+                </div>
+                <div class="rec-kpi-card">
+                    <div class="rec-kpi-icon icon-purple">📧</div>
+                    <div class="rec-kpi-value" id="total-contacts">0</div>
+                    <div class="rec-kpi-label">Contacts établis</div>
+                </div>
+            </div>
+
+            <!-- Recruiters List (populated by recruiters.js) -->
             <div id="recruiters-container"></div>
 
             <footer class="site-footer">
@@ -152,9 +275,37 @@
             </footer>
         </main>
     </div>
+
     <div id="toast-container"></div>
     <script src="recruiters.js"></script>
     <script src="cookie-consent.js"></script>
+
+    <!-- Animated counter for KPI values -->
+    <script>
+        (function() {
+            function animateCount(el, to) {
+                var from = 0, dur = 1200, start = null;
+                function step(ts) {
+                    if (!start) start = ts;
+                    var p = Math.min((ts - start) / dur, 1);
+                    var ease = 1 - Math.pow(1 - p, 3);
+                    el.textContent = Math.round(from + (to - from) * ease);
+                    if (p < 1) requestAnimationFrame(step);
+                }
+                requestAnimationFrame(step);
+            }
+            var ids = ['total-recruiters', 'total-companies', 'total-contacts'];
+            ids.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (!el) return;
+                var obs = new MutationObserver(function() {
+                    var val = parseInt(el.textContent, 10);
+                    if (!isNaN(val) && val > 0) animateCount(el, val);
+                });
+                obs.observe(el, { childList: true, subtree: true, characterData: true });
+            });
+        })();
+    </script>
 </body>
 
 </html>
