@@ -1,19 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "api/*.js", "use": "@vercel/node" },
-    { "src": "public/**", "use": "@vercel/static" }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "^/$", "headers": { "Location": "/public/login.html" }, "status": 302 },
-    { "src": "^/login$", "headers": { "Location": "/public/login.html" }, "status": 302 },
-    { "src": "^/dashboard$", "headers": { "Location": "/public/index.html" }, "status": 302 },
-    { "src": "^/applications$", "headers": { "Location": "/public/applications.html" }, "status": 302 },
-    { "src": "^/jobs$", "headers": { "Location": "/public/jobs.html" }, "status": 302 },
-    { "src": "^/candidatures$", "headers": { "Location": "/public/candidatures.html" }, "status": 302 },
-    { "src": "^/recruiters$", "headers": { "Location": "/public/recruiters.html" }, "status": 302 },
-    { "src": "^/settings$", "headers": { "Location": "/public/settings.html" }, "status": 302 },
-    { "src": "/(.*)", "dest": "/public/$1" }
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/", "destination": "/public/login.html" },
+    { "source": "/((?!api/).*)", "destination": "/public/$1" }
   ]
 }
