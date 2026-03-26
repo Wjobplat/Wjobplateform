@@ -40,12 +40,17 @@
 
         .login-logo {
             margin-bottom: var(--space-lg);
-            display: inline-block;
+            display: flex;
+            justify-content: center;
         }
 
-        .login-logo img {
-            height: 48px;
+        .login-logo .logo-badge {
+            font-size: 1.2em;
+            padding: 8px 18px 8px 14px;
         }
+
+        .login-logo .logo-w { font-size: 24px; }
+        .login-logo .logo-job { font-size: 15px; }
 
         .login-title {
             font-size: 1.5rem;
@@ -66,7 +71,7 @@
     <div class="login-card">
         <div class="login-header">
             <div class="login-logo">
-                <img src="wjob-logo.svg" alt="W-JOB Logo">
+                <span class="logo-badge"><span class="logo-w">W</span><span class="logo-job">JOB</span></span>
             </div>
             <h1 class="login-title" id="page-title">Bon retour</h1>
             <p class="login-subtitle" id="page-subtitle">Connectez-vous pour gérer vos candidatures</p>

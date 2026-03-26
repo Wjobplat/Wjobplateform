@@ -460,6 +460,25 @@ var API = {
                 if (response.ok) {
                     const result = await response.json();
                     if (result.analysis) {
+                        // Save profile to user_profiles table
+                        try {
+                            await supabase.from('user_profiles').upsert({
+                                user_id: user.id,
+                                name: result.analysis.name || '',
+                                skills: result.analysis.skills || [],
+                                experience_years: result.analysis.experience_years || 0,
+                                education: result.analysis.education || '',
+                                job_titles: result.analysis.job_titles || [],
+                                languages: result.analysis.languages || [],
+                                summary: result.analysis.summary || '',
+                                search_keywords: result.analysis.search_keywords || [],
+                                cv_path: cvUrl || '',
+                                cv_analyzed_at: new Date().toISOString(),
+                                updated_at: new Date().toISOString()
+                            }, { onConflict: 'user_id' });
+                        } catch (profileErr) {
+                            console.warn('[W-JOB] user_profiles save failed:', profileErr.message);
+                        }
                         return {
                             success: true,
                             analysis: result.analysis.summary || 'CV analysé avec succès.',

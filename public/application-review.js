@@ -2,6 +2,9 @@
 let currentApp = null;
 
 document.addEventListener('DOMContentLoaded', async function () {
+    const user = await requireAuth();
+    if (!user) return;
+
     const params = new URLSearchParams(window.location.search);
     const id = parseInt(params.get('id'));
 
@@ -76,7 +79,6 @@ function renderReview() {
                 <p style="color: var(--color-text-secondary);">${job.company || ''} ${job.location ? '· ' + job.location : ''}</p>
             </div>
             <span class="badge badge-${currentApp.status}">${currentApp.status}</span>
-        </div>
         </div>
     `;
 
@@ -249,8 +251,8 @@ async function generateAiEmail() {
         btn.disabled = true;
 
         const result = await API.generateAiEmail({
-            jobId: currentApp.job.id, // Ensure we access jobId correctly from job object or app
-            applicationId: currentApp.id
+            job: currentApp.job,
+            profile: {}
         });
 
         if (result.email) {

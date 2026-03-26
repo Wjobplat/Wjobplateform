@@ -1,5 +1,7 @@
 // Settings page - API-powered
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    const user = await requireAuth();
+    if (!user) return;
     console.log('[W-JOB] Tip: Visit settings.html?admin=1 to enable all administrative features if you are not role:admin in Supabase.');
     loadProfile();
     loadConfig();

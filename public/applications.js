@@ -156,12 +156,10 @@ async function startAnalysis() {
         const res = await API.analyzeCV(formData);
 
         // Step 3: Show real result
-        if (res.webhookSent) {
-            setProgress('CV envoy\u00e9 \u00e0 l\'agent IA pour analyse...', 85);
-            await delay(500);
-            setProgress('Agent IA notifi\u00e9 avec succ\u00e8s !', 100);
+        if (res.profile && Object.keys(res.profile).length > 0) {
+            setProgress('Analyse IA termin\u00e9e !', 100);
         } else {
-            setProgress('CV upload\u00e9 (configurez le webhook pour l\'analyse IA)', 100);
+            setProgress(res.analysis || 'Analyse termin\u00e9e', 100);
         }
 
         await delay(600);
@@ -400,10 +398,10 @@ async function sendSingleApplication(jobId) {
         const emailText = emailEl?.textContent || '';
 
         await API.createApplication({
-            job_id: job.id,
+            jobId: job.id,
             status: 'sent',
-            custom_email: emailText,
-            sent_date: new Date().toISOString().slice(0, 10)
+            customEmail: emailText,
+            notes: ''
         });
 
         showToast(`Candidature envoy\u00e9e pour ${job.title}`, 'success');
@@ -426,10 +424,10 @@ async function sendAllApplications() {
             const emailText = emailEl?.textContent || '';
 
             await API.createApplication({
-                job_id: job.id,
+                jobId: job.id,
                 status: 'sent',
-                custom_email: emailText,
-                sent_date: new Date().toISOString().slice(0, 10)
+                customEmail: emailText,
+                notes: ''
             });
             sent++;
         } catch (e) {
