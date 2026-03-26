@@ -360,9 +360,9 @@ async function generateEmails() {
             wrapper.style.opacity = '1';
         }, i * 150);
 
-        // Generate email via webhook or local template
+        // Generate email via Claude API
         try {
-            const res = await API.generateAiEmail({ job });
+            const res = await API.generateAiEmail({ job, profile: analysisData?.profile || {} });
             document.getElementById(`email-content-${job.id}`).textContent = res.email;
         } catch (e) {
             document.getElementById(`email-content-${job.id}`).textContent = 'Erreur de g\u00e9n\u00e9ration.';

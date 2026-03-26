@@ -358,52 +358,63 @@ var API = {
     },
 
     generateAiEmail: async function (data) {
+        // Call Claude API directly via Vercel serverless function
         try {
-            const config = await this.getWebhookConfig();
-            if (config.enabled && config.outgoingUrl) {
-                const { data: { user } } = await supabase.auth.getUser();
-                const payload = {
-                    event: 'email.generate',
-                    data: {
-                        user_id: user?.id,
-                        job_title: data.job?.title,
-                        company: data.job?.company,
-                        recruiter_name: data.job?.recruiter?.name,
-                        recruiter_email: data.job?.recruiter?.email,
-                        job_description: data.job?.description
-                    }
-                };
-                const headers = { 'Content-Type': 'application/json' };
-                if (config.secret) headers['X-Webhook-Secret'] = config.secret;
-
-                const response = await fetch(config.outgoingUrl, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.email) return { email: result.email };
-                }
+            const response = await fetch('/api/generate-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ job: data.job, profile: data.profile || {} })
+            });
+            if (response.ok) {
+                const result = await response.json();
+                if (result.email) return { email: result.email };
             }
         } catch (e) {
-            console.warn('[W-JOB] Webhook email generation failed, using template:', e.message);
+            console.warn('[W-JOB] /api/generate-email failed, using template:', e.message);
         }
 
         // Fallback: local template
         const { data: { user } } = await supabase.auth.getUser();
-        const profile = user?.user_metadata || {};
-        const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Candidat';
+        const profile = data.profile || user?.user_metadata || {};
+        const name = profile.name || [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Candidat';
         const job = data.job || {};
 
         return {
-            email: `Objet : Candidature au poste de ${job.title || 'Poste'} — ${job.company || 'Entreprise'}\n\nBonjour ${job.recruiter?.name || 'Madame, Monsieur'},\n\nJe me permets de vous contacter concernant le poste de ${job.title || 'développeur'} au sein de ${job.company || 'votre entreprise'}.\n\nAprès avoir pris connaissance de la description du poste, je suis convaincu(e) que mon profil correspond à vos attentes. Mon expérience et mes compétences me permettraient de contribuer efficacement à votre équipe.\n\nJe serais ravi(e) d'échanger avec vous lors d'un entretien pour vous présenter mon parcours plus en détail.\n\nCordialement,\n${name}`
+            email: `Objet : Candidature au poste de ${job.title || 'Poste'} — ${job.company || 'Entreprise'}\n\nBonjour ${job.recruiter?.name || 'Madame, Monsieur'},\n\nJe me permets de vous contacter concernant le poste de ${job.title || 'développeur'} au sein de ${job.company || 'votre entreprise'}.\n\nMon profil correspond aux attentes du poste : ${(profile.skills || []).slice(0, 3).join(', ')}.\n\nJe serais ravi(e) d'échanger avec vous lors d'un entretien.\n\nCordialement,\n${name}`
         };
     },
 
     // ============================================================
-    // analyzeCV — VERSION CORRIGÉE : lit la réponse de l'agent IA
+    // extractPdfText — Extracts text from a PDF file using pdf.js
+    // ============================================================
+    extractPdfText: async function (file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                try {
+                    const typedArray = new Uint8Array(e.target.result);
+                    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+                    if (!pdfjsLib) throw new Error('pdf.js non chargé');
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
+                    let text = '';
+                    for (let i = 1; i <= Math.min(pdf.numPages, 5); i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        text += content.items.map(item => item.str).join(' ') + '\n';
+                    }
+                    resolve(text.trim());
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+    },
+
+    // ============================================================
+    // analyzeCV — Appel direct à /api/analyze-cv (Claude IA)
     // ============================================================
     analyzeCV: async function (formData) {
         const file = formData.get('cv');
@@ -412,79 +423,65 @@ var API = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Utilisateur non connecté');
 
-        // 1. Upload CV to Supabase Storage
-        const fileName = `cv-${Date.now()}-${file.name}`;
-        const { error: uploadError } = await supabase.storage
-            .from('cvs')
-            .upload(`${user.id}/${fileName}`, file, { upsert: true });
-
+        // 1. Upload CV to Supabase Storage (background, non-blocking)
         let cvUrl = null;
-        if (!uploadError) {
-            const { data: signedData } = await supabase.storage
-                .from('cvs')
-                .createSignedUrl(`${user.id}/${fileName}`, 3600);
-            cvUrl = signedData?.signedUrl || null;
-        } else {
-            console.warn('CV upload to storage failed, continuing without URL:', uploadError.message);
-        }
-
-        // 2. Send to AI Agent webhook and READ the response
-        let webhookSent = false;
         try {
-            const config = await this.getWebhookConfig();
-            if (config.enabled && config.outgoingUrl) {
-                const payload = {
-                    event: 'cv.uploaded',
-                    data: {
-                        user_id: user.id,
-                        file_name: file.name,
-                        file_size: file.size,
-                        cv_url: cvUrl,
-                        timestamp: new Date().toISOString()
-                    }
-                };
-
-                const headers = { 'Content-Type': 'application/json' };
-                if (config.secret) headers['X-Webhook-Secret'] = config.secret;
-
-                const response = await fetch(config.outgoingUrl, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(payload)
-                });
-
-                console.log(`[W-JOB] Webhook cv.uploaded → status: ${response.status}`);
-
-                // ✅ FIX: Read the agent's response and return real data
-                if (response.ok) {
-                    const agentResult = await response.json();
-                    console.log('[W-JOB] Agent response:', agentResult);
-
-                    return {
-                        success: true,
-                        analysis: agentResult.profile?.summary || agentResult.analysis || agentResult.message || "CV analysé avec succès par l'agent IA.",
-                        recommendations: agentResult.profile?.skills || [],
-                        jobs_found: agentResult.jobs_found || 0,
-                        profile: agentResult.profile || {},
-                        webhookSent: true,
-                        cvUrl
-                    };
-                }
-            } else {
-                console.log('[W-JOB] Webhook sortant non configuré ou désactivé.');
+            const fileName = `cv-${Date.now()}-${file.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('cvs')
+                .upload(`${user.id}/${fileName}`, file, { upsert: true });
+            if (!uploadError) {
+                const { data: signedData } = await supabase.storage
+                    .from('cvs')
+                    .createSignedUrl(`${user.id}/${fileName}`, 3600);
+                cvUrl = signedData?.signedUrl || null;
             }
-        } catch (webhookErr) {
-            console.error('[W-JOB] Erreur envoi webhook:', webhookErr.message);
+        } catch (storageErr) {
+            console.warn('CV upload to storage failed:', storageErr.message);
         }
 
-        // Fallback if webhook fails or not configured
+        // 2. Extract text from PDF client-side
+        let cvText = '';
+        try {
+            cvText = await this.extractPdfText(file);
+            console.log(`[W-JOB] PDF text extracted: ${cvText.length} chars`);
+        } catch (pdfErr) {
+            console.warn('[W-JOB] PDF extraction failed:', pdfErr.message);
+        }
+
+        // 3. Call /api/analyze-cv directly with extracted text
+        if (cvText.length >= 50) {
+            try {
+                const response = await fetch('/api/analyze-cv', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cvText })
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.analysis) {
+                        return {
+                            success: true,
+                            analysis: result.analysis.summary || 'CV analysé avec succès.',
+                            recommendations: result.analysis.skills || [],
+                            profile: result.analysis,
+                            cvUrl
+                        };
+                    }
+                }
+            } catch (apiErr) {
+                console.error('[W-JOB] /api/analyze-cv error:', apiErr.message);
+            }
+        }
+
+        // Fallback if API fails or PDF unreadable
         return {
             success: true,
-            analysis: webhookSent
-                ? "CV envoyé à l'agent IA pour analyse. Vous recevrez les résultats prochainement."
-                : "CV uploadé avec succès. Configurez le webhook sortant dans les Paramètres pour activer l'analyse par l'agent IA.",
+            analysis: cvText.length < 50
+                ? 'PDF illisible ou trop court. Vérifiez que le CV n\'est pas scanné.'
+                : 'Analyse temporairement indisponible. Réessayez dans quelques instants.',
             recommendations: [],
-            webhookSent,
+            profile: {},
             cvUrl
         };
     },

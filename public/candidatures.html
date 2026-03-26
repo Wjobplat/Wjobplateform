@@ -264,6 +264,31 @@
     <div class="app-container">
         <main class="main-content">
 
+            <!-- ══ TABS ═════════════════════════════════════════ -->
+            <div class="animated-tabs" id="tabs-container">
+                <div id="tab-indicator" class="tab-indicator"></div>
+                <button class="tab-btn active" onclick="filterByStatus('all', this)">
+                    Tout
+                    <span id="count-all" class="tab-count">0</span>
+                </button>
+                <button class="tab-btn" onclick="filterByStatus('draft', this)">
+                    Brouillons
+                    <span id="count-draft" class="tab-count">0</span>
+                </button>
+                <button class="tab-btn" onclick="filterByStatus('pending', this)">
+                    En attente
+                    <span id="count-pending" class="tab-count">0</span>
+                </button>
+                <button class="tab-btn" onclick="filterByStatus('sent', this)">
+                    Envoyées
+                    <span id="count-sent" class="tab-count">0</span>
+                </button>
+                <button class="tab-btn" onclick="filterByStatus('responded', this)">
+                    Réponses
+                    <span id="count-responded" class="tab-count">0</span>
+                </button>
+            </div>
+
             <!-- ══ HERO HEADER ═══════════════════════════════════ -->
             <div class="cand-hero fade-in">
                 <div class="cand-live-badge">
@@ -291,31 +316,6 @@
                         Réponses
                     </div>
                 </div>
-            </div>
-
-            <!-- ══ TABS ═════════════════════════════════════════ -->
-            <div class="animated-tabs" id="tabs-container">
-                <div id="tab-indicator" class="tab-indicator"></div>
-                <button class="tab-btn active" onclick="filterByStatus('all', this)">
-                    Tout
-                    <span id="count-all" class="tab-count">0</span>
-                </button>
-                <button class="tab-btn" onclick="filterByStatus('draft', this)">
-                    Brouillons
-                    <span id="count-draft" class="tab-count">0</span>
-                </button>
-                <button class="tab-btn" onclick="filterByStatus('pending', this)">
-                    En attente
-                    <span id="count-pending" class="tab-count">0</span>
-                </button>
-                <button class="tab-btn" onclick="filterByStatus('sent', this)">
-                    Envoyées
-                    <span id="count-sent" class="tab-count">0</span>
-                </button>
-                <button class="tab-btn" onclick="filterByStatus('responded', this)">
-                    Réponses
-                    <span id="count-responded" class="tab-count">0</span>
-                </button>
             </div>
 
             <!-- ══ SEARCH & SORT ════════════════════════════════ -->

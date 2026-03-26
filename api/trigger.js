@@ -1,7 +1,8 @@
 
 // Vercel Serverless Function — Agent IA Trigger
-// Handles all incoming events from the frontend (outgoing webhook)
-// and routes them back to /api/webhook for processing
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export default async function handler(req, res) {
     // Allow CORS for browser requests
@@ -38,27 +39,41 @@ export default async function handler(req, res) {
     // 2. CV UPLOADED — acknowledge receipt
     // =============================================
     if (event === 'cv.uploaded') {
-        console.log(`[Trigger] CV received: ${body.data?.file_name} (${body.data?.file_size} bytes)`);
-        console.log(`[Trigger] CV URL: ${body.data?.cv_url}`);
+        const cvUrl = body.data?.cv_url;
+        const fileName = body.data?.file_name || 'cv.pdf';
+        console.log(`[Trigger] CV received: ${fileName}`);
 
-        // In production, this is where you'd send the CV to your real AI service
-        // For now, log it and acknowledge
-        const webhookResult = await forwardToWebhook(req, {
-            user_id,
-            event: 'cv.uploaded',
-            data: {
-                message: `CV "${body.data?.file_name}" re\u00e7u par l'agent IA`,
-                file_name: body.data?.file_name,
-                cv_url: body.data?.cv_url,
-                status: 'received'
+        let profile = {};
+        if (cvUrl && process.env.ANTHROPIC_API_KEY) {
+            try {
+                const message = await anthropic.messages.create({
+                    model: 'claude-opus-4-6',
+                    max_tokens: 1024,
+                    messages: [{
+                        role: 'user',
+                        content: `Analyse ce CV (fichier: ${fileName}, URL: ${cvUrl}) et extrais les informations en JSON strict.
+Retourne UNIQUEMENT ce JSON:
+{"name":"","title":"","summary":"","skills":[],"experience_years":0,"education":"","languages":[],"job_titles":[],"search_keywords":[]}`
+                    }]
+                });
+                const raw = message.content[0].text.trim();
+                const match = raw.match(/\{[\s\S]*\}/);
+                if (match) profile = JSON.parse(match[0]);
+            } catch (e) {
+                console.warn('[Trigger] CV analysis error:', e.message);
             }
+        }
+
+        await forwardToWebhook(req, {
+            user_id, event: 'cv.uploaded',
+            data: { file_name: fileName, cv_url: cvUrl, status: 'analyzed', profile }
         });
 
         return res.status(200).json({
             success: true,
-            message: `CV re\u00e7u et enregistr\u00e9 par l'agent IA`,
-            analysis: 'Analyse en cours par l\'agent...',
-            webhookResult
+            message: `CV analysé par l'agent IA`,
+            profile,
+            analysis: profile.summary || "CV reçu par l'agent IA."
         });
     }
 
@@ -67,24 +82,33 @@ export default async function handler(req, res) {
     // =============================================
     if (event === 'email.generate') {
         const d = body.data || {};
-        const email = `Objet : Candidature au poste de ${d.job_title || 'Poste'} \u2014 ${d.company || 'Entreprise'}
+        let email = '';
 
-Bonjour ${d.recruiter_name || 'Madame, Monsieur'},
+        if (process.env.ANTHROPIC_API_KEY) {
+            try {
+                const message = await anthropic.messages.create({
+                    model: 'claude-opus-4-6',
+                    max_tokens: 600,
+                    messages: [{
+                        role: 'user',
+                        content: `Rédige un email de candidature professionnel et personnalisé.
+Poste: ${d.job_title || 'Non spécifié'} chez ${d.company || 'Non spécifié'}
+Recruteur: ${d.recruiter_name || 'Madame, Monsieur'}
+Description: ${(d.job_description || '').substring(0, 200)}
+Objet en 1ère ligne. 3 paragraphes max. Ton humain. Sans clichés. En français.`
+                    }]
+                });
+                email = message.content[0].text.trim();
+            } catch (e) {
+                console.warn('[Trigger] Email generation error:', e.message);
+            }
+        }
 
-Suite \u00e0 la d\u00e9couverte de votre offre pour le poste de ${d.job_title || 'd\u00e9veloppeur'} chez ${d.company || 'votre entreprise'}, je souhaite vous pr\u00e9senter ma candidature.
+        if (!email) {
+            email = `Objet : Candidature — ${d.job_title || 'Poste'} chez ${d.company || 'Entreprise'}\n\nBonjour ${d.recruiter_name || 'Madame, Monsieur'},\n\nJe souhaite vous soumettre ma candidature pour le poste de ${d.job_title || 'ce poste'}.\n\nMon parcours correspond aux attentes décrites. Je serais ravi(e) d'en discuter lors d'un entretien.\n\nCordialement`;
+        }
 
-${d.job_description ? `Votre recherche d'un profil capable de "${d.job_description.substring(0, 100)}..." correspond parfaitement \u00e0 mon parcours professionnel.` : 'Mon exp\u00e9rience et mes comp\u00e9tences correspondent aux attentes du poste.'}
-
-Je serais ravi(e) d'\u00e9changer avec vous lors d'un entretien pour approfondir ma motivation et ma vision pour ce r\u00f4le.
-
-Dans l'attente de votre retour, je vous prie d'agr\u00e9er mes salutations distingu\u00e9es.
-
-Cordialement`;
-
-        return res.status(200).json({
-            success: true,
-            email: email
-        });
+        return res.status(200).json({ success: true, email });
     }
 
     // =============================================
