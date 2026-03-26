@@ -6,7 +6,9 @@
 //   Timeline  : activity-timeline
 //   Dernières : latest-apps-list
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    const user = await requireAuth();
+    if (!user) return;
     console.log('[W-JOB] Dashboard v7.0 chargé');
     loadDashboard();
 });

@@ -1,19 +1,15 @@
 {
-  "name": "jobflow-platform",
+  "name": "wjob-platform",
   "version": "1.0.0",
-  "description": "JobFlow - Plateforme de gestion de candidatures avec agent IA",
+  "description": "W-JOB — Plateforme de candidature intelligente avec agent IA",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js",
-    "agent": "node --watch agent_ia.js"
+    "dev": "node --watch server.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.2",
-    "multer": "^1.4.5-lts.1"
+    "express": "^4.18.2"
   }
 }

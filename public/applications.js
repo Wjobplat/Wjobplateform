@@ -6,7 +6,9 @@ let analysisData = null;
 let searchResults = [];
 let selectedJobs = new Set();
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    const user = await requireAuth();
+    if (!user) return;
     setupFileUpload();
 });
 

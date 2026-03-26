@@ -1,5 +1,7 @@
 // Recruiters page - API-powered
 document.addEventListener('DOMContentLoaded', async function () {
+    const user = await requireAuth();
+    if (!user) return;
     try {
         const recruiters = await API.getRecruiters();
         document.getElementById('total-recruiters').textContent = recruiters.length;

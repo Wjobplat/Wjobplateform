@@ -2,6 +2,8 @@
 let allApplications = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const user = await requireAuth();
+    if (!user) return;
     // Show skeleton loading
     showSkeletons();
     try {
@@ -122,11 +124,12 @@ function applyFilters(statusOverride) {
 // COUNTS
 // =============================================
 function updateCounts() {
-    document.getElementById('count-all').textContent = allApplications.length;
-    document.getElementById('count-draft').textContent = allApplications.filter(a => a.status === 'draft').length;
-    document.getElementById('count-pending').textContent = allApplications.filter(a => a.status === 'pending').length;
-    document.getElementById('count-sent').textContent = allApplications.filter(a => a.status === 'sent').length;
-    document.getElementById('count-responded').textContent = allApplications.filter(a => a.status === 'responded').length;
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('count-all',       allApplications.length);
+    set('count-draft',     allApplications.filter(a => a.status === 'draft').length);
+    set('count-pending',   allApplications.filter(a => a.status === 'pending').length);
+    set('count-sent',      allApplications.filter(a => a.status === 'sent').length);
+    set('count-responded', allApplications.filter(a => a.status === 'responded').length);
 }
 
 // =============================================

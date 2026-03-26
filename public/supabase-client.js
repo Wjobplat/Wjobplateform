@@ -1,6 +1,5 @@
 /* supabase-client.js */
 (function () {
-    // Prevent errors if loaded multiple times
     if (window.supabase_initialized) return;
 
     const SUPABASE_URL = 'https://bqobpkwkwypiuhtprjva.supabase.co';
@@ -11,6 +10,27 @@
         window.supabase_initialized = true;
         console.log('Supabase Client Initialized');
     } else {
-        console.error('Supabase SDK missing. Ensure script tag is correct.');
+        console.error('Supabase SDK missing.');
     }
 })();
+
+/* Auth guard — appeler sur les pages protégées */
+async function requireAuth() {
+    try {
+        const { data: { session } } = await window.supabase.auth.getSession();
+        if (!session) {
+            window.location.replace('login.html');
+            return null;
+        }
+        return session.user;
+    } catch (e) {
+        window.location.replace('login.html');
+        return null;
+    }
+}
+
+/* Déconnexion */
+async function logout() {
+    await window.supabase.auth.signOut();
+    window.location.replace('login.html');
+}

@@ -2,6 +2,8 @@
 let allJobs = [];
 
 document.addEventListener('DOMContentLoaded', async function () {
+    const user = await requireAuth();
+    if (!user) return;
     try {
         allJobs = await API.getJobs();
         renderJobs(allJobs);
