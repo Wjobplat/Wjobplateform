@@ -5,9 +5,9 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { cvText } = req.body;
-  if (!cvText || cvText.trim().length < 50) {
-    return res.status(400).json({ error: 'Texte du CV trop court ou manquant' });
+  const { cvBase64 } = req.body;
+  if (!cvBase64 || cvBase64.length === 0) {
+    return res.status(400).json({ error: 'PDF du CV manquant ou invalide' });
   }
 
   try {
@@ -17,10 +17,18 @@ export default async function handler(req, res) {
       messages: [
         {
           role: 'user',
-          content: `Tu es un expert RH. Analyse ce CV et extrais les informations clés en JSON strict.
-
-CV :
-${cvText}
+          content: [
+            {
+              type: 'document',
+              source: {
+                type: 'base64',
+                media_type: 'application/pdf',
+                data: cvBase64
+              }
+            },
+            {
+              type: 'text',
+              text: `Tu es un expert RH. Analyse ce CV et extrais les informations clés en JSON strict.
 
 Retourne UNIQUEMENT ce JSON (sans markdown, sans explication) :
 {
@@ -34,6 +42,8 @@ Retourne UNIQUEMENT ce JSON (sans markdown, sans explication) :
   "job_titles": ["titre recherché 1", "titre recherché 2"],
   "search_keywords": ["mot-clé1", "mot-clé2", ...]
 }`
+            }
+          ]
         }
       ]
     });

@@ -385,6 +385,31 @@ var API = {
     },
 
     // ============================================================
+    // pdfToBase64 — Converts PDF file to base64 string for API
+    // ============================================================
+    pdfToBase64: async function (file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const arrayBuffer = e.target.result;
+                    const bytes = new Uint8Array(arrayBuffer);
+                    let binaryString = '';
+                    for (let i = 0; i < bytes.byteLength; i++) {
+                        binaryString += String.fromCharCode(bytes[i]);
+                    }
+                    const base64 = btoa(binaryString);
+                    resolve(base64);
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+    },
+
+    // ============================================================
     // extractPdfText — Extracts text from a PDF file using pdf.js
     // ============================================================
     extractPdfText: async function (file) {
@@ -440,22 +465,22 @@ var API = {
             console.warn('CV upload to storage failed:', storageErr.message);
         }
 
-        // 2. Extract text from PDF client-side
-        let cvText = '';
+        // 2. Convert PDF to base64 for API
+        let cvBase64 = '';
         try {
-            cvText = await this.extractPdfText(file);
-            console.log(`[W-JOB] PDF text extracted: ${cvText.length} chars`);
+            cvBase64 = await this.pdfToBase64(file);
+            console.log(`[W-JOB] PDF converted to base64: ${cvBase64.length} chars`);
         } catch (pdfErr) {
-            console.warn('[W-JOB] PDF extraction failed:', pdfErr.message);
+            console.warn('[W-JOB] PDF conversion to base64 failed:', pdfErr.message);
         }
 
-        // 3. Call /api/analyze-cv directly with extracted text
-        if (cvText.length >= 50) {
+        // 3. Call /api/analyze-cv directly with base64-encoded PDF
+        if (cvBase64.length > 0) {
             try {
                 const response = await fetch('/api/analyze-cv', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cvText })
+                    body: JSON.stringify({ cvBase64 })
                 });
                 if (response.ok) {
                     const result = await response.json();
@@ -496,8 +521,8 @@ var API = {
         // Fallback if API fails or PDF unreadable
         return {
             success: true,
-            analysis: cvText.length < 50
-                ? 'PDF illisible ou trop court. Vérifiez que le CV n\'est pas scanné.'
+            analysis: cvBase64.length === 0
+                ? 'Impossible de lire le fichier PDF. Vérifiez que c\'est un PDF valide.'
                 : 'Analyse temporairement indisponible. Réessayez dans quelques instants.',
             recommendations: [],
             profile: {},
