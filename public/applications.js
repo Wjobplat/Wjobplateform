@@ -286,7 +286,6 @@ async function startSearch() {
             };
         });
 
-        // Sort by compatibility descending
         searchResults.sort((a, b) => b.compatibility - a.compatibility);
 
         document.getElementById('search-loading').classList.add('hidden');
@@ -294,24 +293,56 @@ async function startSearch() {
 
         const n = searchResults.length;
         document.getElementById('results-count').textContent = n === 0
-            ? "Aucun emploi trouv\u00e9. Ajoutez des offres dans l'onglet Emplois."
-            : `${n} offre${n > 1 ? 's' : ''} compatible${n > 1 ? 's' : ''} trouv\u00e9e${n > 1 ? 's' : ''}`;
+            ? 'Aucune offre dans la base de donn\u00e9es'
+            : `${n} offre${n > 1 ? 's' : ''} analys\u00e9e${n > 1 ? 's' : ''} \u2022 tri\u00e9es par compatibilit\u00e9`;
 
+        document.getElementById('sr-empty').classList.toggle('hidden', n > 0);
+        document.getElementById('sr-error').classList.add('hidden');
+
+        setupFilters();
+        activeFilter = 'all';
         renderResults();
+
     } catch (e) {
         console.error('Search error:', e);
-        showToast('Erreur lors de la recherche', 'error');
         document.getElementById('search-loading').classList.add('hidden');
         document.getElementById('search-results').classList.remove('hidden');
-        document.getElementById('results-count').textContent = 'Erreur de chargement des offres.';
+        document.getElementById('results-count').textContent = '';
+        document.getElementById('sr-empty').classList.add('hidden');
+        document.getElementById('sr-error').classList.remove('hidden');
+        document.getElementById('sr-error-msg').textContent = e.message || 'Impossible de r\u00e9cup\u00e9rer les offres.';
     }
+}
+
+let activeFilter = 'all';
+
+function setupFilters() {
+    document.querySelectorAll('.sr-pill').forEach(pill => {
+        pill.onclick = () => {
+            activeFilter = pill.dataset.filter;
+            document.querySelectorAll('.sr-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            renderResults();
+        };
+    });
 }
 
 function renderResults() {
     const grid = document.getElementById('results-grid');
     grid.innerHTML = '';
 
-    searchResults.forEach((job, i) => {
+    const filtered = searchResults.filter(job => {
+        if (activeFilter === 'all') return true;
+        if (activeFilter === 'high') return job.compatibility >= 75;
+        return (job.contract || '').toLowerCase().includes(activeFilter.toLowerCase());
+    });
+
+    if (filtered.length === 0 && searchResults.length > 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:2.5rem 1rem;color:var(--muted);font-size:.88rem">Aucune offre ne correspond à ce filtre.</div>`;
+        return;
+    }
+
+    filtered.forEach((job, i) => {
         const isSelected = selectedJobs.has(job.id);
         const card = document.createElement('div');
         card.className = `result-card ${isSelected ? 'selected' : ''}`;
