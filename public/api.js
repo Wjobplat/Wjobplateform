@@ -563,7 +563,7 @@ var API = {
     _defaultWebhookConfig: function () {
         return {
             id: null,
-            outgoingUrl: window.location.origin + '/api/trigger',
+            outgoingUrl: '',
             secret: 'wjob_sec_' + Math.random().toString(36).substr(2, 9),
             enabled: false,
             events: {
