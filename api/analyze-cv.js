@@ -1,7 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { askClaude } from './_lib/claude.js';
 import { requireUser } from './_lib/auth.js';
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -13,9 +11,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 1024,
+    const message = await askClaude({
       messages: [
         {
           role: 'user',
@@ -50,7 +46,7 @@ Retourne UNIQUEMENT ce JSON (sans markdown, sans explication) :
       ]
     });
 
-    const raw = message.content[0].text.trim();
+    const raw = message;
     let analysis;
     try {
       analysis = JSON.parse(raw);

@@ -1,9 +1,7 @@
 
 // Vercel Serverless Function — Agent IA Trigger
-import Anthropic from '@anthropic-ai/sdk';
+import { askClaude } from './_lib/claude.js';
 import { isAuthorizedFor } from './_lib/auth.js';
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export default async function handler(req, res) {
     // Allow CORS for browser requests
@@ -52,17 +50,21 @@ export default async function handler(req, res) {
         let profile = {};
         if (cvUrl && process.env.ANTHROPIC_API_KEY) {
             try {
-                const message = await anthropic.messages.create({
-                    model: 'claude-opus-4-6',
-                    max_tokens: 1024,
+                const message = await askClaude({
                     messages: [{
                         role: 'user',
-                        content: `Analyse ce CV (fichier: ${fileName}, URL: ${cvUrl}) et extrais les informations en JSON strict.
+                        content: [
+                            { type: 'document', source: { type: 'url', url: cvUrl } },
+                            {
+                                type: 'text',
+                                text: `Analyse ce CV (fichier: ${fileName}) et extrais les informations en JSON strict.
 Retourne UNIQUEMENT ce JSON:
 {"name":"","title":"","summary":"","skills":[],"experience_years":0,"education":"","languages":[],"job_titles":[],"search_keywords":[]}`
+                            }
+                        ]
                     }]
                 });
-                const raw = message.content[0].text.trim();
+                const raw = message;
                 const match = raw.match(/\{[\s\S]*\}/);
                 if (match) profile = JSON.parse(match[0]);
             } catch (e) {
@@ -92,9 +94,7 @@ Retourne UNIQUEMENT ce JSON:
 
         if (process.env.ANTHROPIC_API_KEY) {
             try {
-                const message = await anthropic.messages.create({
-                    model: 'claude-opus-4-6',
-                    max_tokens: 600,
+                const message = await askClaude({
                     messages: [{
                         role: 'user',
                         content: `Rédige un email de candidature professionnel et personnalisé.
@@ -104,7 +104,7 @@ Description: ${(d.job_description || '').substring(0, 200)}
 Objet en 1ère ligne. 3 paragraphes max. Ton humain. Sans clichés. En français.`
                     }]
                 });
-                email = message.content[0].text.trim();
+                email = message;
             } catch (e) {
                 console.warn('[Trigger] Email generation error:', e.message);
             }

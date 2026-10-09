@@ -1,7 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { askClaude } from './_lib/claude.js';
 import { requireUser } from './_lib/auth.js';
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -37,13 +35,11 @@ Règles :
 Rédige uniquement l'email (objet + corps), en français.`;
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 800,
+    const message = await askClaude({
       messages: [{ role: 'user', content: prompt }]
     });
 
-    const email = message.content[0].text.trim();
+    const email = message;
     res.status(200).json({ success: true, email });
   } catch (err) {
     console.error('Claude generate-email error:', err);
