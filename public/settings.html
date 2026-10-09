@@ -654,7 +654,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">URL entrante (Incoming)</label>
-                                    <input type="url" id="incoming-url" class="form-input" placeholder="https://votre-domaine.com/webhook">
+                                    <input type="url" id="incoming-url" class="form-input" readonly title="URL à donner à votre agent externe (header X-Webhook-Secret requis)">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">URL sortante (Outgoing)</label>
@@ -826,13 +826,13 @@
                         <div class="card-body">
                             <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Outils d'administration système. Accès réservé aux administrateurs.</p>
                             <div class="flex-group">
-                                <button class="btn btn-secondary">
+                                <a href="agent.html" class="btn btn-secondary" style="text-decoration:none">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                                     </svg>
-                                    Gérer les utilisateurs
-                                </button>
+                                    Agent IA (administration)
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -868,193 +868,7 @@
     </footer>
 
     <!-- ══ SCRIPTS ════════════════════════════════════════════ -->
-    <script>
-        // Load settings on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadProfile();
-            loadWebhookConfig();
-            loadConsent();
-            updateWebhookStatus();
-        });
-
-        // PROFILE FUNCTIONS
-        function saveProfile() {
-            const firstname = document.getElementById('profile-firstname').value;
-            const lastname = document.getElementById('profile-lastname').value;
-            const email = document.getElementById('profile-email').value;
-            const status = document.getElementById('profile-status').value;
-
-            if (!firstname || !lastname || !email) {
-                showToast('Veuillez remplir tous les champs', 'error');
-                return;
-            }
-
-            localStorage.setItem('profile_firstname', firstname);
-            localStorage.setItem('profile_lastname', lastname);
-            localStorage.setItem('profile_email', email);
-            localStorage.setItem('profile_status', status);
-
-            showToast('Profil enregistré avec succès', 'success');
-        }
-
-        function loadProfile() {
-            const firstname = localStorage.getItem('profile_firstname') || '';
-            const lastname = localStorage.getItem('profile_lastname') || '';
-            const email = localStorage.getItem('profile_email') || '';
-            const status = localStorage.getItem('profile_status') || '';
-
-            document.getElementById('profile-firstname').value = firstname;
-            document.getElementById('profile-lastname').value = lastname;
-            document.getElementById('profile-email').value = email;
-            document.getElementById('profile-status').value = status;
-        }
-
-        // WEBHOOK FUNCTIONS
-        function saveConfig() {
-            const enabled = document.getElementById('webhook-enabled').checked;
-            const incomingUrl = document.getElementById('incoming-url').value;
-            const outgoingUrl = document.getElementById('outgoing-url').value;
-            const events = {
-                job_created: document.getElementById('evt-job-created').checked,
-                recruiter_found: document.getElementById('evt-recruiter-found').checked,
-                app_generated: document.getElementById('evt-app-generated').checked,
-                status_changed: document.getElementById('evt-status-changed').checked
-            };
-
-            localStorage.setItem('webhook_enabled', enabled);
-            localStorage.setItem('webhook_incoming_url', incomingUrl);
-            localStorage.setItem('webhook_outgoing_url', outgoingUrl);
-            localStorage.setItem('webhook_events', JSON.stringify(events));
-
-            updateWebhookStatus();
-            showToast('Configuration webhook enregistrée', 'success');
-        }
-
-        function loadWebhookConfig() {
-            const enabled = localStorage.getItem('webhook_enabled') === 'true';
-            const incomingUrl = localStorage.getItem('webhook_incoming_url') || '';
-            const outgoingUrl = localStorage.getItem('webhook_outgoing_url') || '';
-            const events = JSON.parse(localStorage.getItem('webhook_events') || '{}');
-
-            document.getElementById('webhook-enabled').checked = enabled;
-            document.getElementById('incoming-url').value = incomingUrl;
-            document.getElementById('outgoing-url').value = outgoingUrl;
-            document.getElementById('evt-job-created').checked = events.job_created || false;
-            document.getElementById('evt-recruiter-found').checked = events.recruiter_found || false;
-            document.getElementById('evt-app-generated').checked = events.app_generated || false;
-            document.getElementById('evt-status-changed').checked = events.status_changed || false;
-        }
-
-        function copySecret() {
-            const secret = document.getElementById('webhook-secret');
-            const value = secret.value || 'wjob_secret_' + Math.random().toString(36).substr(2, 32);
-            document.getElementById('webhook-secret').value = value;
-            navigator.clipboard.writeText(value).then(() => {
-                showToast('Secret copié dans le presse-papiers', 'success');
-            });
-        }
-
-        function testWebhook() {
-            const enabled = document.getElementById('webhook-enabled').checked;
-            if (!enabled) {
-                showToast('Activez les webhooks d\'abord', 'error');
-                return;
-            }
-            showToast('Test webhook envoyé', 'info');
-        }
-
-        function updateWebhookStatus() {
-            const enabled = document.getElementById('webhook-enabled').checked;
-            const indicator = document.getElementById('webhook-status-indicator');
-            if (enabled) {
-                indicator.classList.add('active');
-                indicator.classList.remove('inactive');
-            } else {
-                indicator.classList.remove('active');
-                indicator.classList.add('inactive');
-            }
-        }
-
-        // CONSENT FUNCTIONS
-        function saveConsent() {
-            const processing = document.getElementById('consent-processing').checked;
-            const analytics = document.getElementById('consent-analytics').checked;
-            const webhook = document.getElementById('consent-webhook').checked;
-
-            localStorage.setItem('consent_processing', processing);
-            localStorage.setItem('consent_analytics', analytics);
-            localStorage.setItem('consent_webhook', webhook);
-
-            showToast('Préférences de consentement enregistrées', 'success');
-        }
-
-        function loadConsent() {
-            const processing = localStorage.getItem('consent_processing') === 'true';
-            const analytics = localStorage.getItem('consent_analytics') === 'true';
-            const webhook = localStorage.getItem('consent_webhook') === 'true';
-
-            document.getElementById('consent-processing').checked = processing;
-            document.getElementById('consent-analytics').checked = analytics;
-            document.getElementById('consent-webhook').checked = webhook;
-        }
-
-        function exportData() {
-            const profile = {
-                firstname: localStorage.getItem('profile_firstname'),
-                lastname: localStorage.getItem('profile_lastname'),
-                email: localStorage.getItem('profile_email'),
-                status: localStorage.getItem('profile_status')
-            };
-
-            const dataStr = JSON.stringify(profile, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'wjob-export-' + new Date().toISOString().split('T')[0] + '.json';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-
-            showToast('Vos données ont été exportées', 'success');
-        }
-
-        function deleteData() {
-            if (confirm('Êtes-vous sûr ? Cette action est irréversible.')) {
-                localStorage.removeItem('profile_firstname');
-                localStorage.removeItem('profile_lastname');
-                localStorage.removeItem('profile_email');
-                localStorage.removeItem('profile_status');
-                localStorage.removeItem('webhook_enabled');
-                localStorage.removeItem('webhook_incoming_url');
-                localStorage.removeItem('webhook_outgoing_url');
-                localStorage.removeItem('webhook_events');
-                localStorage.removeItem('consent_processing');
-                localStorage.removeItem('consent_analytics');
-                localStorage.removeItem('consent_webhook');
-
-                location.reload();
-            }
-        }
-
-        // TOAST NOTIFICATIONS
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast ' + type;
-            toast.textContent = message;
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.animation = 'slideUp 0.3s ease reverse';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        // Update webhook status on enable/disable
-        document.getElementById('webhook-enabled')?.addEventListener('change', updateWebhookStatus);
-    </script>
+    <script src="settings.js"></script>
 <script src="cookie-consent.js"></script>
 </body>
 

@@ -1,9 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { requireUser } from './_lib/auth.js';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (!(await requireUser(req, res))) return;
 
   const { cvBase64 } = req.body;
   if (!cvBase64 || cvBase64.length === 0) {

@@ -1,160 +1,69 @@
-# 🎯 JobFlow - Plateforme de Gestion de Candidatures
+# W-JOB — Plateforme de candidature avec agent IA
 
-Une plateforme web moderne et élégante pour automatiser et gérer votre recherche d'emploi avec un contrôle humain total.
+Dépose ton CV, l'IA (Claude) analyse ton profil, trouve des offres compatibles et prépare les emails de candidature. Aucune candidature n'est envoyée sans validation humaine.
 
-![Dashboard](https://img.shields.io/badge/Status-Ready-success)
-![Version](https://img.shields.io/badge/Version-1.0.0-blue)
+En ligne : https://wjobplateform.vercel.app/
 
-## ✨ Fonctionnalités
+## Stack
 
-### 📊 Dashboard Centralisé
-- Vue d'ensemble avec KPIs en temps réel
-- Timeline d'activité récente
-- Statistiques de candidatures
-- Design moderne avec glassmorphism et animations
+- **Front** : HTML / CSS / JS vanilla, servi statiquement depuis `public/` (pas de bundler)
+- **Auth + base de données** : Supabase (`public/supabase-client.js`, schéma dans `migrations/supabase_schema.sql`)
+- **Fonctions serveur** : Vercel serverless (`api/`, Node.js)
+- **IA** : API Anthropic (Claude) via les fonctions `api/`
 
-### 🔍 Recherche d'Emplois
-- Filtres avancés (localisation, type de contrat, compétences, compatibilité)
-- Score de compatibilité pour chaque offre
-- Vue détaillée des offres avec modal
-- Tri par compatibilité, date ou entreprise
-- Mock data de 8+ offres d'emploi
+## Pages (`public/`)
 
-### 📝 Gestion des Candidatures
-- Suivi par statut (Brouillon, En attente, Envoyée, Réponse)
-- Historique complet des candidatures
-- Notes personnelles pour chaque candidature
-- Actions contextuelles selon le statut
+| Page | Rôle |
+|---|---|
+| `welcome.html` | Page d'accueil publique (`/`) |
+| `login.html` | Connexion / inscription Supabase |
+| `applications.html` | Wizard « Démarrer » : upload CV → analyse IA → offres → emails |
+| `index.html` | Dashboard (KPIs, dernières candidatures, activité) |
+| `jobs.html` | Offres trouvées : recherche, filtres, détail, candidater |
+| `candidatures.html` | Suivi en kanban par statut |
+| `application-review.html` | Révision / validation d'une candidature |
+| `recruiters.html` | Contacts recruteurs |
+| `settings.html` | Profil, webhooks, consentements RGPD, export / suppression des données |
+| `agent.html` | Pilotage de l'agent IA (admin) |
+| `privacy.html`, `terms.html`, `legal.html` | Pages légales |
 
-### ✅ Workflow de Validation (Human-in-the-Loop)
-- **Aucune candidature envoyée sans validation explicite**
-- Prévisualisation complète de l'email et lettre de motivation
-- Édition en temps réel avant envoi
-- Génération automatique de contenu personnalisé
-- Confirmation obligatoire avant envoi
+JS associé : un fichier par page (`jobs.js`, `candidatures.js`, …) + `api.js` (couche Supabase, helpers `showToast`, `escapeHtml`, `initUserAvatar`, `apiHeaders`), `theme.js`, `cookie-consent.js`.
 
-### 👥 Gestion des Recruteurs
-- Base de données de contacts recruteurs
-- Informations de contact (email, LinkedIn)
-- Lien vers les offres de l'entreprise
+## Fonctions serveur (`api/`)
 
-## 🚀 Installation et Utilisation
+| Route | Rôle | Authentification |
+|---|---|---|
+| `POST /api/analyze-cv` | Analyse d'un CV PDF par Claude | JWT Supabase (`Authorization: Bearer`) |
+| `POST /api/generate-email` | Email de candidature | JWT Supabase |
+| `POST /api/generate-cover-letter` | Lettre de motivation | JWT Supabase |
+| `POST /api/trigger` | Événements de l'agent (`test.ping` public) | JWT ou `X-Webhook-Secret` |
+| `POST /api/webhook?user_id=…` | Webhook entrant (agent externe → Supabase) | JWT ou `X-Webhook-Secret` |
 
-### Prérequis
-Aucun ! Cette application fonctionne directement dans le navigateur sans installation.
+`api/_lib/auth.js` contient les vérifications (non exposé comme route).
 
-### Lancement
+## Variables d'environnement Vercel
 
-1. **Ouvrir le fichier principal**
-   ```
-   Ouvrez simplement le fichier index.html dans votre navigateur
-   ```
+| Variable | Usage |
+|---|---|
+| `ANTHROPIC_API_KEY` | Appels Claude |
+| `SUPABASE_SERVICE_ROLE_KEY` | Écritures du webhook + vérification du secret webhook |
+| `NEXT_PUBLIC_SUPABASE_URL` *(optionnel)* | URL Supabase (valeur par défaut dans le code) |
 
-2. **Navigation**
-   - **Dashboard** : Vue d'ensemble et statistiques
-   - **Recherche d'emplois** : Parcourir et filtrer les offres
-   - **Candidatures** : Gérer vos candidatures
-   - **Recruteurs** : Consulter vos contacts
+## Développement local
 
-3. **Workflow complet**
-   ```
-   Rechercher une offre → Préparer candidature → Réviser et modifier → Approuver → Envoyer
-   ```
-
-## 📁 Structure du Projet
-
-```
-job-platform/
-├── index.html              # Dashboard principal
-├── jobs.html               # Page de recherche d'emplois
-├── applications.html       # Gestion des candidatures
-├── application-review.html # Révision et validation
-├── recruiters.html         # Gestion des recruteurs
-├── styles.css              # Design system complet
-├── tabs.css                # Styles pour les onglets
-├── data.js                 # Mock data (jobs, recruteurs, candidatures)
-├── dashboard.js            # Logique du dashboard
-├── jobs.js                 # Logique de recherche
-├── applications.js         # Logique des candidatures
-├── application-review.js   # Logique de validation
-└── recruiters.js           # Logique des recruteurs
+```bash
+npm install
+npx serve public -p 3000
 ```
 
-## 🎨 Design
+Les fonctions `api/` nécessitent `vercel dev` pour tourner en local.
 
-### Thème
-- **Mode sombre** avec palette de couleurs vibrantes
-- **Glassmorphism** pour un effet moderne
-- **Gradients** personnalisés (violet/bleu)
-- **Animations fluides** pour une UX premium
+## Administration
 
-### Palette de Couleurs
-- Primary: `#667eea` → `#764ba2`
-- Success: `#4facfe` → `#00f2fe`
-- Warning: `#fbbf24`
-- Danger: `#f5576c`
+Le rôle admin se lit dans `app_metadata.role` du compte Supabase (modifiable uniquement côté serveur) :
 
-## 🔒 Sécurité et Contrôle
-
-### Principe Human-in-the-Loop
-Cette plateforme implémente un **contrôle humain total** :
-
-1. ✅ **Aucune action automatique** sans validation
-2. ✅ **Prévisualisation obligatoire** de tous les contenus
-3. ✅ **Édition possible** à chaque étape
-4. ✅ **Confirmation explicite** requise pour l'envoi
-5. ✅ **Traçabilité complète** de toutes les actions
-
-## 📊 Données
-
-### Mock Data Inclus
-- **8 offres d'emploi** variées (Full Stack, Data, DevOps, etc.)
-- **3 recruteurs** avec informations de contact
-- **5 candidatures** à différents stades
-- **Timeline d'activité** récente
-
-### Personnalisation
-Pour ajouter vos propres données, modifiez le fichier `data.js` :
-- `mockData.jobs` : Vos offres d'emploi
-- `mockData.recruiters` : Vos contacts
-- `mockData.applications` : Vos candidatures
-
-## 🔮 Évolutions Futures
-
-### Intégrations Réelles
-- [ ] API LinkedIn Jobs
-- [ ] API Indeed
-- [ ] API Welcome to the Jungle
-- [ ] Scraping de sites carrières
-
-### Backend
-- [ ] Base de données persistante (PostgreSQL)
-- [ ] API REST avec Node.js/Express
-- [ ] Authentification utilisateur
-- [ ] Envoi d'emails réel (SMTP/SendGrid)
-
-### Fonctionnalités Avancées
-- [ ] IA pour génération de lettres de motivation
-- [ ] Analyse de compatibilité avancée
-- [ ] Rappels automatiques
-- [ ] Export de données (PDF, CSV)
-- [ ] Statistiques avancées et graphiques
-
-## 🛠️ Technologies
-
-- **HTML5** - Structure
-- **CSS3** - Design system moderne
-- **JavaScript (Vanilla)** - Logique applicative
-- **Google Fonts (Inter)** - Typographie
-
-## 📝 Licence
-
-Ce projet est un prototype de démonstration.
-
-## 👨‍💻 Auteur
-
-Créé avec ❤️ pour automatiser la recherche d'emploi tout en gardant le contrôle.
-
----
-
-**Note** : Cette application utilise actuellement des données de démonstration. Pour une utilisation en production, il faudra implémenter les intégrations API réelles et un backend sécurisé.
+```sql
+update auth.users
+set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}'
+where email = 'ton@email.fr';
+```

@@ -47,6 +47,7 @@ var API = {
             name: user.user_metadata?.name || user.email.split('@')[0],
             firstName: user.user_metadata?.firstName || '',
             lastName: user.user_metadata?.lastName || '',
+            status: user.user_metadata?.status || '',
             role: user.user_metadata?.role || 'user'
         };
     },
@@ -59,6 +60,7 @@ var API = {
         const meta = {};
         if (data.firstName !== undefined) meta.firstName = data.firstName;
         if (data.lastName !== undefined) meta.lastName = data.lastName;
+        if (data.status !== undefined) meta.status = data.status;
         if (data.firstName !== undefined || data.lastName !== undefined) {
             meta.name = `${data.firstName || ''} ${data.lastName || ''}`.trim();
         }
@@ -72,14 +74,8 @@ var API = {
     isAdmin: async function () {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return false;
-        if (localStorage.getItem('wjob_admin_override') === 'true') return true;
-        return user.user_metadata?.role === 'admin';
-    },
-
-    promoteMe: function () {
-        localStorage.setItem('wjob_admin_override', 'true');
-        showToast('Promotion Admin activée ! Redémarrage...', 'success');
-        setTimeout(() => location.reload(), 1000);
+        // app_metadata n'est modifiable que côté serveur ; user_metadata gardé en repli
+        return user.app_metadata?.role === 'admin' || user.user_metadata?.role === 'admin';
     },
 
     // Jobs
@@ -340,7 +336,7 @@ var API = {
         try {
             const response = await fetch(config.outgoingUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await apiHeaders(config.outgoingUrl, config.secret),
                 body: JSON.stringify({
                     action: action,
                     user_id: user.id,
@@ -362,7 +358,7 @@ var API = {
         try {
             const response = await fetch('/api/generate-email', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await apiHeaders(),
                 body: JSON.stringify({ job: data.job, profile: data.profile || {} })
             });
             if (response.ok) {
@@ -479,7 +475,7 @@ var API = {
             try {
                 const response = await fetch('/api/analyze-cv', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: await apiHeaders(),
                     body: JSON.stringify({ cvBase64 })
                 });
                 if (response.ok) {
@@ -612,8 +608,7 @@ var API = {
         };
 
         try {
-            const headers = { 'Content-Type': 'application/json' };
-            if (config.secret) headers['X-Webhook-Secret'] = config.secret;
+            const headers = await apiHeaders(config.outgoingUrl, config.secret);
 
             const response = await fetch(config.outgoingUrl, {
                 method: 'POST',
@@ -744,6 +739,20 @@ function formatRelativeTime(isoString) {
     return `Il y a ${days}j`;
 }
 
+// En-têtes pour les appels POST : JWT Supabase uniquement vers nos propres /api (jamais vers une URL externe)
+async function apiHeaders(url = '/api/', secret) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (secret) headers['X-Webhook-Secret'] = secret;
+    try {
+        const target = new URL(url, window.location.origin);
+        if (target.origin === window.location.origin && target.pathname.startsWith('/api/')) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+        }
+    } catch (e) { }
+    return headers;
+}
+
 // Échappe les données avant injection via innerHTML
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -786,17 +795,6 @@ function showToast(message, type = 'info') {
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
-
-// Auto-admin via URL parameter
-(function () {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('admin') === '1') {
-        localStorage.setItem('wjob_admin_override', 'true');
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
-        location.reload();
-    }
-})();
 
 // Global UI Manager for Admin-only elements
 document.addEventListener('DOMContentLoaded', async function () {

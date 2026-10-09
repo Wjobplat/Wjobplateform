@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const user = await requireAuth();
     if (!user) return;
-    console.log('[W-JOB] Tip: Visit settings.html?admin=1 to enable all administrative features if you are not role:admin in Supabase.');
+    initUserAvatar(user);
     loadProfile();
     loadConfig();
     loadLogs();
@@ -16,31 +16,44 @@ async function loadProfile() {
         document.getElementById('profile-firstname').value = user.firstName || '';
         document.getElementById('profile-lastname').value = user.lastName || '';
         document.getElementById('profile-email').value = user.email || '';
+        document.getElementById('profile-status').value = user.status || '';
     } catch (e) {
         console.error('Profile load error:', e);
     }
 }
 
 async function saveProfile() {
-    const statusEl = document.getElementById('profile-status');
+    const firstName = document.getElementById('profile-firstname').value.trim();
+    const lastName = document.getElementById('profile-lastname').value.trim();
+    const email = document.getElementById('profile-email').value.trim();
+    if (!firstName || !lastName || !email) {
+        showToast('Veuillez remplir tous les champs', 'error');
+        return;
+    }
     try {
-        statusEl.textContent = 'Enregistrement...';
-        statusEl.style.color = 'var(--color-text-secondary)';
         await API.updateProfile({
-            firstName: document.getElementById('profile-firstname').value.trim(),
-            lastName: document.getElementById('profile-lastname').value.trim(),
-            email: document.getElementById('profile-email').value.trim()
+            firstName,
+            lastName,
+            email,
+            status: document.getElementById('profile-status').value
         });
-        showToast('Profil mis \u00e0 jour avec succ\u00e8s', 'success');
-        statusEl.textContent = '\u2713 Enregistr\u00e9';
-        statusEl.style.color = 'var(--color-primary)';
-        setTimeout(() => { statusEl.textContent = ''; }, 3000);
+        showToast('Profil mis à jour avec succès', 'success');
     } catch (e) {
         showToast(e.message || 'Erreur lors de la sauvegarde', 'error');
-        statusEl.textContent = '\u2717 Erreur';
-        statusEl.style.color = 'var(--color-danger)';
     }
 }
+
+function updateWebhookStatus() {
+    const enabled = document.getElementById('webhook-enabled')?.checked;
+    const indicator = document.getElementById('webhook-status-indicator');
+    if (!indicator) return;
+    indicator.classList.toggle('active', !!enabled);
+    indicator.classList.toggle('inactive', !enabled);
+}
+
+document.addEventListener('change', e => {
+    if (e.target && e.target.id === 'webhook-enabled') updateWebhookStatus();
+});
 
 
 async function checkAdminAccess() {
@@ -61,9 +74,9 @@ async function loadConfig() {
     try {
         const user = await API.getMe();
         if (incomingEl && user && user.id) {
-            incomingEl.textContent = `${siteUrl}/api/webhook?user_id=${user.id}`;
+            incomingEl.value = `${siteUrl}/api/webhook?user_id=${user.id}`;
         } else if (incomingEl) {
-            incomingEl.textContent = `${siteUrl}/api/webhook`;
+            incomingEl.value = `${siteUrl}/api/webhook`;
         }
 
         const config = await API.getWebhookConfig();
@@ -77,16 +90,18 @@ async function loadConfig() {
         setCheck('evt-recruiter-found', events['recruiter.found']);
         setCheck('evt-app-generated', events['application.generated']);
         setCheck('evt-status-changed', events['application.status_changed']);
+        updateWebhookStatus();
     } catch (e) {
         console.warn('Webhook config not available (table may not exist yet):', e.message);
         // Set sensible defaults so the UI is not stuck on "Chargement..."
-        if (incomingEl) incomingEl.textContent = `${siteUrl}/api/webhook`;
+        if (incomingEl) incomingEl.value = `${siteUrl}/api/webhook`;
         const outEl = document.getElementById('outgoing-url');
         if (outEl) outEl.value = '';
         const secEl = document.getElementById('webhook-secret');
         if (secEl) secEl.value = 'wjob_sec_' + Math.random().toString(36).substr(2, 9);
         const enEl = document.getElementById('webhook-enabled');
         if (enEl) enEl.checked = false;
+        updateWebhookStatus();
     }
 }
 
@@ -137,10 +152,10 @@ async function loadLogs() {
             const div = document.createElement('div');
             div.className = 'log-item';
             div.innerHTML = `
-                <div class="log-status ${log.status}"></div>
+                <div class="log-status ${escapeHtml(log.status)}"></div>
                 <span>${log.direction === 'incoming' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 13 12 18 17 13"></polyline><line x1="12" y1="6" x2="12" y2="18"></line></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 11 12 6 7 11"></polyline><line x1="12" y1="18" x2="12" y2="6"></line></svg>'}</span>
-                <span class="log-event">${log.event}</span>
-                <span style="color: var(--color-text-secondary); font-size: 0.8rem; flex: 1;">${log.details || ''}</span>
+                <span class="log-event">${escapeHtml(log.event)}</span>
+                <span style="color: var(--color-text-secondary); font-size: 0.8rem; flex: 1;">${escapeHtml(log.details || '')}</span>
                 <span class="log-time">${formatRelativeTime(log.timestamp)}</span>
             `;
             container.appendChild(div);

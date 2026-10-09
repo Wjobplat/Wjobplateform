@@ -1,6 +1,7 @@
 
 // Vercel Serverless Function — Agent IA Trigger
 import Anthropic from '@anthropic-ai/sdk';
+import { isAuthorizedFor } from './_lib/auth.js';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -8,7 +9,7 @@ export default async function handler(req, res) {
     // Allow CORS for browser requests
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Webhook-Secret');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Webhook-Secret');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -33,6 +34,11 @@ export default async function handler(req, res) {
             message: 'Pong ! Agent IA connect\u00e9 et fonctionnel.',
             timestamp: new Date().toISOString()
         });
+    }
+
+    // Tout le reste consomme l'API Claude ou écrit en base : JWT ou secret webhook requis
+    if (!(await isAuthorizedFor(req, user_id))) {
+        return res.status(401).json({ error: 'Non autorisé' });
     }
 
     // =============================================
@@ -207,7 +213,11 @@ async function forwardToWebhook(req, payload) {
 
         const response = await fetch(webhookUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(req.headers.authorization && { Authorization: req.headers.authorization }),
+                ...(req.headers['x-webhook-secret'] && { 'X-Webhook-Secret': req.headers['x-webhook-secret'] })
+            },
             body: JSON.stringify(payload)
         });
 
