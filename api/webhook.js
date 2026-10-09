@@ -60,11 +60,11 @@ export default async function handler(req, res) {
 
         // 2. Perform business logic based on event
         if (event === 'job.created') {
-            const { error } = await supabase.from('jobs').insert(data);
+            const { error } = await supabase.from('jobs').insert({ ...data, user_id });
             if (error) console.error('[Webhook] Job insert error:', error);
         }
         else if (event === 'recruiter.found') {
-            const { error } = await supabase.from('recruiters').insert(data);
+            const { error } = await supabase.from('recruiters').insert({ ...data, user_id });
             if (error) console.error('[Webhook] Recruiter insert error:', error);
         }
         else if (event === 'application.generated') {

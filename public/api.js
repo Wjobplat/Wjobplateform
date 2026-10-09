@@ -74,8 +74,8 @@ var API = {
     isAdmin: async function () {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return false;
-        // app_metadata n'est modifiable que côté serveur ; user_metadata gardé en repli
-        return user.app_metadata?.role === 'admin' || user.user_metadata?.role === 'admin';
+        // app_metadata n'est modifiable que côté serveur
+        return user.app_metadata?.role === 'admin';
     },
 
     // Jobs
@@ -205,7 +205,10 @@ var API = {
         const file = formData.get('cv');
         if (!file) throw new Error('File missing');
 
-        const fileName = `cv-${Date.now()}-${file.name}`;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Non connecté');
+        // Dossier <user_id>/ : seul emplacement autorisé par la politique de stockage
+        const fileName = `${user.id}/cv-${Date.now()}-${file.name}`;
 
         const { error: uploadError } = await supabase.storage
             .from('cvs')
@@ -450,7 +453,7 @@ var API = {
             const fileName = `cv-${Date.now()}-${file.name}`;
             const { error: uploadError } = await supabase.storage
                 .from('cvs')
-                .upload(`${user.id}/${fileName}`, file, { upsert: true });
+                .upload(`${user.id}/${fileName}`, file);
             if (!uploadError) {
                 const { data: signedData } = await supabase.storage
                     .from('cvs')

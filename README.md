@@ -49,6 +49,8 @@ JS associé : un fichier par page (`jobs.js`, `candidatures.js`, …) + `api.js`
 | `SUPABASE_SERVICE_ROLE_KEY` | Écritures du webhook + vérification du secret webhook |
 | `NEXT_PUBLIC_SUPABASE_URL` *(optionnel)* | URL Supabase (valeur par défaut dans le code) |
 
+Les politiques RLS de référence sont dans `migrations/` (chaque utilisateur ne voit que ses offres, candidatures, recruteurs et CV).
+
 ## Développement local
 
 ```bash
@@ -60,7 +62,7 @@ Les fonctions `api/` nécessitent `vercel dev` pour tourner en local.
 
 ## Administration
 
-Le rôle admin se lit dans `app_metadata.role` du compte Supabase (modifiable uniquement côté serveur) :
+Le rôle admin se lit uniquement dans `app_metadata.role` du compte Supabase (modifiable seulement côté serveur) :
 
 ```sql
 update auth.users
