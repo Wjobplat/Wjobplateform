@@ -118,8 +118,17 @@
                 </ul>
 
                 <h2>3. Stockage et sécurité</h2>
-                <p>Toutes les données sont stockées localement sur votre instance. Les mots de passe sont hashés avec
-                    bcrypt. Les communications sont sécurisées par JWT.</p>
+                <p>Les données sont stockées dans une base Supabase (PostgreSQL) protégée par des règles d'accès
+                    par utilisateur. L'authentification est gérée par Supabase Auth et les communications sont
+                    chiffrées (HTTPS).</p>
+                <p>W-JOB fait appel aux sous-traitants suivants :</p>
+                <ul>
+                    <li><strong>Supabase</strong> : authentification et base de données — région [à compléter]</li>
+                    <li><strong>Vercel</strong> : hébergement du site et des fonctions serveur</li>
+                    <li><strong>Anthropic</strong> : analyse du CV et génération des emails par IA (Claude). Les
+                        contenus transmis ne sont pas utilisés pour entraîner les modèles.</li>
+                </ul>
+                <p>Durée de conservation : [à compléter].</p>
 
                 <h2>4. Vos droits (RGPD)</h2>
                 <p>Conformément au RGPD, vous disposez des droits suivants :</p>
