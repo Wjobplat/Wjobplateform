@@ -744,6 +744,29 @@ function formatRelativeTime(isoString) {
     return `Il y a ${days}j`;
 }
 
+// Échappe les données avant injection via innerHTML
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Initiales de l'utilisateur dans l'avatar de la topnav + clic = déconnexion
+function initUserAvatar(user) {
+    const el = document.getElementById('user-avatar') || document.querySelector('.topnav .avatar');
+    if (!el || !user) return;
+    const meta = user.user_metadata || {};
+    const name = meta.full_name || meta.name || (user.email || '').split('@')[0];
+    const initials = name.split(/[\s._-]+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('');
+    el.textContent = initials || '?';
+    el.title = `${user.email || name} — cliquer pour se déconnecter`;
+    if (el.dataset.logoutBound) return;
+    el.dataset.logoutBound = '1';
+    el.addEventListener('click', async () => {
+        if (!confirm('Se déconnecter ?')) return;
+        try { await API.logout(); } catch (e) { }
+        window.location.href = 'login.html';
+    });
+}
+
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;

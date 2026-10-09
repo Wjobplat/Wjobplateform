@@ -204,6 +204,29 @@
     @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)};.nav-links .nav-link span{display:none}}
     @media(max-width:600px){.topnav{padding:0 1rem}.kanban{grid-template-columns:1fr}}
       .logo-badge{display:inline-flex;align-items:baseline;gap:2px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:8px;padding:5px 12px 5px 10px;line-height:1;text-decoration:none}    .logo-w{font-size:18px;font-weight:900;color:#fff;letter-spacing:-1px}    .logo-job{font-size:12px;font-weight:700;color:#10b981;letter-spacing:2.5px}    [data-theme=light] .logo-badge{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.35)}    [data-theme=light] .logo-w{color:#0f172a}
+
+    /* TOASTS + MODAL + EMPTY STATE */
+    #toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+    .toast{display:flex;align-items:center;gap:12px;background:rgba(10,20,32,.97);backdrop-filter:blur(20px);border:1px solid var(--gb);border-radius:12px;padding:.75rem 1rem;font-size:.85rem;color:var(--text);opacity:0;transform:translateX(24px);transition:all .3s;pointer-events:auto}
+    [data-theme="light"] .toast{background:rgba(255,255,255,.97)}
+    .toast.toast-show{opacity:1;transform:translateX(0)}
+    .toast-icon{flex-shrink:0;display:flex}
+    .toast-success{border-left:2px solid #10b981}.toast-error{border-left:2px solid #f43f5e}.toast-info{border-left:2px solid #3b82f6}.toast-warning{border-left:2px solid #f59e0b}
+    .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.875rem;background:var(--glass);border:1px dashed var(--gb);border-radius:16px}
+    .empty-state a{color:var(--em-l);font-weight:600;text-decoration:none}
+    .skeleton{background:linear-gradient(90deg,var(--glass) 25%,var(--gh) 50%,var(--glass) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:16px;height:150px;margin-bottom:.85rem;border:1px solid var(--gb)}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .field-select{background:var(--glass);border:1px solid var(--gb);border-radius:10px;padding:.5rem .7rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.82rem;width:100%;outline:none;cursor:pointer}
+    .field-select option{background:#071a20;color:#f0fdf8}
+    .modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:1rem}
+    .modal-overlay.hidden{display:none}
+    .modal-box{background:#071a20;border:1px solid var(--gb);border-radius:18px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:1.5rem}
+    [data-theme="light"] .modal-box{background:#fff}
+    .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem}
+    .modal-head h3{font-size:1.15rem;font-weight:800}
+    .modal-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1}
+    .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1.25rem}
+    .btn-danger{padding:.6rem 1rem;border-radius:10px;border:1px solid rgba(244,63,94,.35);background:rgba(244,63,94,.1);color:#fb7185;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
 </style>
 </head>
 <body>
@@ -224,12 +247,10 @@
       <a href="jobs.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span>Emplois</span>
-        <span class="badge">12</span>
       </a>
       <a href="candidatures.html" class="nav-link active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         <span>Candidatures</span>
-        <span class="badge">5</span>
       </a>
       <a href="recruiters.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -251,249 +272,98 @@
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
       </button>
-      <div class="avatar">MM</div>
+      <div class="avatar" id="user-avatar" title="Déconnexion">–</div>
     </div>
   </nav>
 
   <div class="page">
-    <!-- PAGE HEADER -->
     <div class="page-header fade-in fi1">
       <div>
         <h2>Suivi des candidatures</h2>
         <p>Gérez et suivez l'avancement de toutes vos candidatures</p>
       </div>
       <div class="header-actions">
-        <button class="btn btn-ghost">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Exporter
-        </button>
-        <button class="btn btn-primary">
+        <a href="applications.html" class="btn btn-primary" style="text-decoration:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nouvelle candidature
-        </button>
+        </a>
       </div>
     </div>
 
-    <!-- STATS -->
     <div class="stats-row fade-in fi2">
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(255,255,255,.07)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
         </div>
-        <div><div class="stat-val">50</div><div class="stat-lbl">Offres trouvées</div></div>
+        <div><div class="stat-val" id="stat-total">–</div><div class="stat-lbl">Candidatures</div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(16,185,129,.14);color:var(--em-l)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </div>
-        <div><div class="stat-val" style="color:var(--em-l)">3</div><div class="stat-lbl">Envoyées</div></div>
+        <div><div class="stat-val" id="stat-sent" style="color:var(--em-l)">–</div><div class="stat-lbl">Envoyées</div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(245,158,11,.12);color:#fbbf24">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-        <div><div class="stat-val" style="color:#fbbf24">5</div><div class="stat-lbl">En attente</div></div>
+        <div><div class="stat-val" id="stat-pending" style="color:#fbbf24">–</div><div class="stat-lbl">En attente</div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(59,130,246,.14);color:#93c5fd">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         </div>
-        <div><div class="stat-val" style="color:#93c5fd">91%</div><div class="stat-lbl">Meilleur match</div></div>
+        <div><div class="stat-val" id="stat-best" style="color:#93c5fd">–</div><div class="stat-lbl">Meilleur match</div></div>
       </div>
     </div>
 
-    <!-- FILTERS -->
     <div class="filters fade-in fi3">
-      <button class="filter-btn active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        Toutes (50)
-      </button>
-      <button class="filter-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Brouillons
-      </button>
-      <button class="filter-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        En attente
-      </button>
-      <button class="filter-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        Envoyées (3)
-      </button>
-      <button class="filter-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        Réponses
-      </button>
-      <div class="search-input">
+      <label class="search-input" style="cursor:text">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        Rechercher...
-      </div>
+        <input type="text" id="search-candidatures" placeholder="Rechercher une entreprise, un poste…" aria-label="Rechercher" style="background:none;border:none;outline:none;color:var(--text);font-family:'Inter',sans-serif;font-size:.8rem;width:220px"/>
+      </label>
+      <select id="sort-candidatures" class="field-select" style="width:auto" aria-label="Trier">
+        <option value="date-desc">Plus récentes</option>
+        <option value="date-asc">Plus anciennes</option>
+        <option value="company">Entreprise (A-Z)</option>
+        <option value="score">Meilleur match</option>
+      </select>
     </div>
 
-    <!-- KANBAN -->
-    <div class="kanban">
-      <!-- BROUILLONS -->
+    <div class="kanban" id="applications-container">
       <div class="kanban-col">
         <div class="col-header">
           <div class="col-title"><span class="col-dot" style="background:#4b5563"></span> Brouillons</div>
-          <span class="col-count">2</span>
+          <span class="col-count" id="col-count-draft">0</span>
         </div>
-        <div class="app-card draft">
-          <div class="card-top">
-            <div class="company-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg></div>
-            <span class="match-score">89%</span>
-          </div>
-          <div class="card-role">Ingénieur Fabrication Moteurs</div>
-          <div class="card-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> GE Aviation · Villepinte</div>
-          <div class="card-tags"><span class="tag">CAO</span><span class="tag">Modélisation</span><span class="tag">Stats</span></div>
-          <div class="card-footer">
-            <span class="card-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Il y a 2j</span>
-            <a href="#" class="card-action">Finaliser <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-          </div>
-        </div>
-        <div class="app-card draft">
-          <div class="card-top">
-            <div class="company-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="2" x2="9" y2="4"/><line x1="15" y1="2" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="22"/><line x1="15" y1="20" x2="15" y2="22"/><line x1="20" y1="9" x2="22" y2="9"/><line x1="20" y1="14" x2="22" y2="14"/><line x1="2" y1="9" x2="4" y2="9"/><line x1="2" y1="14" x2="4" y2="14"/></svg></div>
-            <span class="match-score">89%</span>
-          </div>
-          <div class="card-role">Concepteur Mécanique Automatisation</div>
-          <div class="card-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Siemens · Nantes</div>
-          <div class="card-tags"><span class="tag">CREO</span><span class="tag">CAO</span><span class="tag">PDM</span></div>
-          <div class="card-footer">
-            <span class="card-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Il y a 2j</span>
-            <a href="#" class="card-action">Finaliser <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-          </div>
-        </div>
-        <div class="add-card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-          Ajouter une candidature
-        </div>
+        <div id="col-draft"></div>
       </div>
-
-      <!-- EN ATTENTE -->
       <div class="kanban-col">
         <div class="col-header">
           <div class="col-title"><span class="col-dot" style="background:#f59e0b"></span> En attente</div>
-          <span class="col-count">2</span>
+          <span class="col-count" id="col-count-pending">0</span>
         </div>
-        <div class="app-card pending">
-          <div class="card-top">
-            <div class="company-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-            <span class="match-score">89%</span>
-          </div>
-          <div class="card-role">Ingénieur Matériaux et Conception</div>
-          <div class="card-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Safran Aerospace · Villaroche</div>
-          <div class="card-tags"><span class="tag">CAO CREO</span><span class="tag">Matériaux</span></div>
-          <div class="card-footer">
-            <span class="card-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 22 mars</span>
-            <a href="#" class="card-action">Relancer <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-          </div>
-        </div>
-        <div class="app-card pending" style="border-color:rgba(251,191,36,.15)">
-          <div class="card-top">
-            <div class="company-logo" style="background:rgba(251,191,36,.12);color:#fbbf24"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
-            <span class="match-score" style="color:#fbbf24;background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.2)">À modifier</span>
-          </div>
-          <div class="card-role">Technicien Usinage CNC</div>
-          <div class="card-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Safran Bordeaux · Bordeaux</div>
-          <div class="card-tags"><span class="tag">Usinage CNC</span><span class="tag">Qualité</span></div>
-          <div class="card-alert alert-yellow">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Lettre de motivation à revoir
-          </div>
-          <div class="card-footer">
-            <span class="card-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 22 mars</span>
-            <a href="#" class="card-action">Modifier <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-          </div>
-        </div>
+        <div id="col-pending"></div>
       </div>
-
-      <!-- ENVOYÉES -->
       <div class="kanban-col">
         <div class="col-header">
           <div class="col-title"><span class="col-dot" style="background:var(--em)"></span> Envoyées</div>
-          <span class="col-count">3</span>
+          <span class="col-count" id="col-count-sent">0</span>
         </div>
-        <div class="app-card sent">
-          <div class="card-top">
-            <div class="company-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
-            <span class="match-score">91%</span>
-          </div>
-          <div class="card-role">Ingénieur Conception Mécanique Jr</div>
-          <div class="card-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Bosch Rexroth · Lyon</div>
-          <div class="card-tags"><span class="tag">CAO</span><span class="tag">Windchill</span><span class="tag">Hydraulique</span></div>
-          <div class="card-footer">
-            <span class="card-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 22 mars</span>
-            <a href="#" class="card-action">Voir <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-          </div>
-        </div>
-        <div class="app-card sent">
-          <div class="card-top">
-            <div class="company-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg></div>
-            <span class="match-score">91%</span>
-          </div>
-          <div class="card-role">Ingénieur Conception Mécanique Jr</div>
-          <div class="card-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Michelin · Clermont-Ferrand</div>
-          <div class="card-tags"><span class="tag">CAO CREO</span><span class="tag">Matériaux</span></div>
-          <div class="card-footer">
-            <span class="card-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 22 mars</span>
-            <a href="#" class="card-action">Voir <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-          </div>
-        </div>
-        <div class="app-card sent">
-          <div class="card-top">
-            <div class="company-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
-            <span class="match-score">88%</span>
-          </div>
-          <div class="card-role">Ingénieur Conception Mécanique Jr</div>
-          <div class="card-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Bosch Rexroth · Louhans</div>
-          <div class="card-tags"><span class="tag">CAO CREO</span><span class="tag">Modélisation</span></div>
-          <div class="card-footer">
-            <span class="card-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 22 mars</span>
-            <a href="#" class="card-action">Voir <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-          </div>
-        </div>
+        <div id="col-sent"></div>
       </div>
-
-      <!-- RÉPONSES -->
       <div class="kanban-col">
         <div class="col-header">
           <div class="col-title"><span class="col-dot" style="background:#3b82f6"></span> Réponses reçues</div>
-          <span class="col-count">0</span>
+          <span class="col-count" id="col-count-responded">0</span>
         </div>
-        <div style="text-align:center;padding:2.5rem 1rem;color:var(--muted)">
-          <div style="width:48px;height:48px;border-radius:12px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:#93c5fd">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          </div>
-          <div style="font-size:.82rem;font-weight:600;color:var(--dim);margin-bottom:.3rem">En attente de réponses</div>
-          <div style="font-size:.75rem">3 candidatures envoyées le 22 mars</div>
-        </div>
-        <div class="app-card response" style="opacity:.5">
-          <div class="card-top">
-            <div class="company-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
-            <span class="match-score">91%</span>
-          </div>
-          <div class="card-role">Bosch Rexroth</div>
-          <div class="card-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En attente · envoyé il y a 2j</div>
-          <div class="card-alert alert-blue">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            Pas encore de réponse
-          </div>
-        </div>
+        <div id="col-responded"></div>
       </div>
     </div>
   </div>
 
   <script>
     lucide.createIcons();
-
-    // Filter buttons
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-    });
 
     // ── THEME TOGGLE ──
     const root = document.documentElement;
@@ -520,6 +390,8 @@
 
     window.addEventListener('scroll', navBg);
   </script>
+
+<div id="toast-container"></div>
 
 <!-- Backend scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

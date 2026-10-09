@@ -150,6 +150,29 @@
     @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}.nav-links .nav-link span{display:none}}
     @media(max-width:600px){.topnav{padding:0 1rem}.rec-grid{grid-template-columns:1fr}}
       .logo-badge{display:inline-flex;align-items:baseline;gap:2px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:8px;padding:5px 12px 5px 10px;line-height:1;text-decoration:none}    .logo-w{font-size:18px;font-weight:900;color:#fff;letter-spacing:-1px}    .logo-job{font-size:12px;font-weight:700;color:#10b981;letter-spacing:2.5px}    [data-theme=light] .logo-badge{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.35)}    [data-theme=light] .logo-w{color:#0f172a}
+
+    /* TOASTS + MODAL + EMPTY STATE */
+    #toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+    .toast{display:flex;align-items:center;gap:12px;background:rgba(10,20,32,.97);backdrop-filter:blur(20px);border:1px solid var(--gb);border-radius:12px;padding:.75rem 1rem;font-size:.85rem;color:var(--text);opacity:0;transform:translateX(24px);transition:all .3s;pointer-events:auto}
+    [data-theme="light"] .toast{background:rgba(255,255,255,.97)}
+    .toast.toast-show{opacity:1;transform:translateX(0)}
+    .toast-icon{flex-shrink:0;display:flex}
+    .toast-success{border-left:2px solid #10b981}.toast-error{border-left:2px solid #f43f5e}.toast-info{border-left:2px solid #3b82f6}.toast-warning{border-left:2px solid #f59e0b}
+    .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.875rem;background:var(--glass);border:1px dashed var(--gb);border-radius:16px}
+    .empty-state a{color:var(--em-l);font-weight:600;text-decoration:none}
+    .skeleton{background:linear-gradient(90deg,var(--glass) 25%,var(--gh) 50%,var(--glass) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:16px;height:150px;margin-bottom:.85rem;border:1px solid var(--gb)}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .field-select{background:var(--glass);border:1px solid var(--gb);border-radius:10px;padding:.5rem .7rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.82rem;width:100%;outline:none;cursor:pointer}
+    .field-select option{background:#071a20;color:#f0fdf8}
+    .modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:1rem}
+    .modal-overlay.hidden{display:none}
+    .modal-box{background:#071a20;border:1px solid var(--gb);border-radius:18px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:1.5rem}
+    [data-theme="light"] .modal-box{background:#fff}
+    .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem}
+    .modal-head h3{font-size:1.15rem;font-weight:800}
+    .modal-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1}
+    .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1.25rem}
+    .btn-danger{padding:.6rem 1rem;border-radius:10px;border:1px solid rgba(244,63,94,.35);background:rgba(244,63,94,.1);color:#fb7185;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
 </style>
 </head>
 <body>
@@ -170,12 +193,10 @@
       <a href="jobs.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span>Emplois</span>
-        <span class="badge">12</span>
       </a>
       <a href="candidatures.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         <span>Candidatures</span>
-        <span class="badge">5</span>
       </a>
       <a href="recruiters.html" class="nav-link active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -190,217 +211,62 @@
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
-      <div class="avatar">MM</div>
+      <div class="avatar" id="user-avatar" title="Déconnexion">–</div>
     </div>
   </nav>
 
   <div class="page">
-    <!-- PAGE HEADER -->
     <div class="page-header fade-in fi1">
       <div>
         <h2>Recruteurs</h2>
-        <p>Gérez vos contacts et interactions avec les recruteurs</p>
+        <p>Les contacts recruteurs identifiés par l'agent</p>
       </div>
-      <button class="btn btn-primary">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Ajouter un recruteur
-      </button>
     </div>
 
-    <!-- STATS -->
     <div class="stats-row fade-in fi2">
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(16,185,129,.14);color:var(--em-l)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
-        <div><div class="stat-val" style="color:var(--em-l)">51</div><div class="stat-lbl">Recruteurs · Réseau</div></div>
+        <div><div class="stat-val" id="total-recruiters" style="color:var(--em-l)">–</div><div class="stat-lbl">Recruteurs</div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(59,130,246,.14);color:#93c5fd">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </div>
-        <div><div class="stat-val" style="color:#93c5fd">8</div><div class="stat-lbl">Contactés</div></div>
+        <div><div class="stat-val" id="total-companies" style="color:#93c5fd">–</div><div class="stat-lbl">Entreprises</div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(167,139,250,.14);color:#c4b5fd">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
-        <div><div class="stat-val" style="color:#c4b5fd">3</div><div class="stat-lbl">Réponses reçues</div></div>
+        <div><div class="stat-val" id="total-contacts" style="color:#c4b5fd">–</div><div class="stat-lbl">Avec email</div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(245,158,11,.12);color:#fbbf24">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </div>
-        <div><div class="stat-val" style="color:#fbbf24">38%</div><div class="stat-lbl">Taux de réponse</div></div>
+        <div><div class="stat-val" id="total-linkedin" style="color:#fbbf24">–</div><div class="stat-lbl">Avec LinkedIn</div></div>
       </div>
     </div>
 
-    <!-- SEARCH + FILTERS -->
     <div class="search-bar fade-in fi3">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Rechercher un recruteur, une entreprise…"/>
+      <input type="text" id="search-recruiters" placeholder="Rechercher un recruteur, une entreprise…" aria-label="Rechercher"/>
     </div>
 
-    <div class="filters fade-in fi3">
-      <button class="filter-btn active">Tous</button>
-      <button class="filter-btn">Nouveaux</button>
-      <button class="filter-btn">Contactés</button>
-      <button class="filter-btn">Réponses</button>
-      <button class="filter-btn">En attente</button>
+    <div class="filters fade-in fi3" id="recruiter-filters">
+      <button class="filter-btn active" data-filter="all">Tous</button>
+      <button class="filter-btn" data-filter="email">Avec email</button>
+      <button class="filter-btn" data-filter="linkedin">Avec LinkedIn</button>
     </div>
 
-    <!-- RECRUITER GRID -->
-    <div class="rec-grid">
-
-      <!-- Card 1 -->
-      <div class="recruiter-card fade-in fi4" style="animation-delay:.1s">
-        <div class="rec-top">
-          <div class="rec-avatar" style="background:linear-gradient(135deg,#059669,#10b981)">SL</div>
-          <div class="rec-info">
-            <div class="rec-name">Sophie Laurent</div>
-            <div class="rec-role">Talent Acquisition Manager</div>
-            <div class="rec-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Bosch Rexroth · Lyon</div>
-          </div>
-          <span class="status-badge s-replied">Répondu</span>
-        </div>
-        <div class="rec-tags">
-          <span class="rec-tag">Mécanique</span><span class="rec-tag">Hydraulique</span><span class="rec-tag">CAO</span>
-        </div>
-        <div class="rec-footer">
-          <span class="rec-date">Contacté le 22 mars</span>
-          <div class="rec-actions">
-            <button class="btn-view">Voir profil</button>
-            <button class="btn-contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Relancer</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 2 -->
-      <div class="recruiter-card fade-in fi4" style="animation-delay:.18s">
-        <div class="rec-top">
-          <div class="rec-avatar" style="background:linear-gradient(135deg,#2563eb,#3b82f6)">MB</div>
-          <div class="rec-info">
-            <div class="rec-name">Marc Bernard</div>
-            <div class="rec-role">Recruteur Ingénierie</div>
-            <div class="rec-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Michelin · Clermont-Ferrand</div>
-          </div>
-          <span class="status-badge s-contacted">Contacté</span>
-        </div>
-        <div class="rec-tags">
-          <span class="rec-tag">Matériaux</span><span class="rec-tag">R&D</span><span class="rec-tag">Innovation</span>
-        </div>
-        <div class="rec-footer">
-          <span class="rec-date">Contacté le 22 mars</span>
-          <div class="rec-actions">
-            <button class="btn-view">Voir profil</button>
-            <button class="btn-contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Relancer</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 3 -->
-      <div class="recruiter-card fade-in fi4" style="animation-delay:.26s">
-        <div class="rec-top">
-          <div class="rec-avatar" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">CA</div>
-          <div class="rec-info">
-            <div class="rec-name">Claire Aubry</div>
-            <div class="rec-role">HR Business Partner</div>
-            <div class="rec-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Safran Aerospace · Villaroche</div>
-          </div>
-          <span class="status-badge s-replied">Répondu</span>
-        </div>
-        <div class="rec-tags">
-          <span class="rec-tag">Aéronautique</span><span class="rec-tag">Structures</span><span class="rec-tag">CREO</span>
-        </div>
-        <div class="rec-footer">
-          <span class="rec-date">Contacté le 21 mars</span>
-          <div class="rec-actions">
-            <button class="btn-view">Voir profil</button>
-            <button class="btn-contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Message</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 4 -->
-      <div class="recruiter-card fade-in fi4" style="animation-delay:.34s">
-        <div class="rec-top">
-          <div class="rec-avatar" style="background:linear-gradient(135deg,#d97706,#fbbf24)">TM</div>
-          <div class="rec-info">
-            <div class="rec-name">Thomas Martin</div>
-            <div class="rec-role">Chargé de recrutement</div>
-            <div class="rec-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Siemens · Nantes</div>
-          </div>
-          <span class="status-badge s-pending">En attente</span>
-        </div>
-        <div class="rec-tags">
-          <span class="rec-tag">Automatisation</span><span class="rec-tag">PLC</span><span class="rec-tag">Industrie 4.0</span>
-        </div>
-        <div class="rec-footer">
-          <span class="rec-date">Contacté le 20 mars</span>
-          <div class="rec-actions">
-            <button class="btn-view">Voir profil</button>
-            <button class="btn-contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Relancer</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 5 -->
-      <div class="recruiter-card fade-in fi4" style="animation-delay:.42s">
-        <div class="rec-top">
-          <div class="rec-avatar" style="background:linear-gradient(135deg,#0891b2,#22d3ee)">ND</div>
-          <div class="rec-info">
-            <div class="rec-name">Nathalie Dupuis</div>
-            <div class="rec-role">Senior Recruiter</div>
-            <div class="rec-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> GE Aviation · Villepinte</div>
-          </div>
-          <span class="status-badge s-new">Nouveau</span>
-        </div>
-        <div class="rec-tags">
-          <span class="rec-tag">Moteurs</span><span class="rec-tag">Thermique</span><span class="rec-tag">CFD</span>
-        </div>
-        <div class="rec-footer">
-          <span class="rec-date">Découvert le 23 mars</span>
-          <div class="rec-actions">
-            <button class="btn-view">Voir profil</button>
-            <button class="btn-contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Contacter</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 6 -->
-      <div class="recruiter-card fade-in fi4" style="animation-delay:.5s">
-        <div class="rec-top">
-          <div class="rec-avatar" style="background:linear-gradient(135deg,#be185d,#f472b6)">ER</div>
-          <div class="rec-info">
-            <div class="rec-name">Emma Roche</div>
-            <div class="rec-role">Talent Sourcer</div>
-            <div class="rec-company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Airbus · Toulouse</div>
-          </div>
-          <span class="status-badge s-new">Nouveau</span>
-        </div>
-        <div class="rec-tags">
-          <span class="rec-tag">Structures</span><span class="rec-tag">Composite</span><span class="rec-tag">CATIA</span>
-        </div>
-        <div class="rec-footer">
-          <span class="rec-date">Découvert le 23 mars</span>
-          <div class="rec-actions">
-            <button class="btn-view">Voir profil</button>
-            <button class="btn-contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Contacter</button>
-          </div>
-        </div>
-      </div>
-
+    <div class="rec-grid" id="recruiters-container">
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
     </div>
   </div>
 
   <script>
-    // Filter buttons
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-    });
 
     // ── THEME TOGGLE ──
     const root = document.documentElement;
@@ -426,6 +292,8 @@
 
     window.addEventListener('scroll', navBg);
   </script>
+
+<div id="toast-container"></div>
 
 <!-- Backend scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

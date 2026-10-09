@@ -9,6 +9,7 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const user = await requireAuth();
     if (!user) return;
+    initUserAvatar(user);
     console.log('[W-JOB] Dashboard v7.0 chargé');
     loadDashboard();
 });

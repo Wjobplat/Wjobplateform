@@ -1,244 +1,151 @@
-// Candidatures page - Search, Sort, Animated tabs & application listing
+// Candidatures page - Kanban par statut, recherche & tri
 let allApplications = [];
+
+const COLUMNS = ['draft', 'pending', 'sent', 'responded'];
+
+const STATUS_LABELS = {
+    draft: 'Brouillon',
+    pending: 'En attente',
+    sent: 'Envoyée',
+    responded: 'Réponse reçue',
+    to_modify: 'À modifier'
+};
+
+const ACTION_LABELS = {
+    draft: 'Finaliser',
+    pending: 'Réviser',
+    to_modify: 'Modifier',
+    sent: 'Voir',
+    responded: 'Voir'
+};
+
+const CARD_ICONS = {
+    logo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>',
+    company: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+    date: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+    alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
     const user = await requireAuth();
     if (!user) return;
-    // Show skeleton loading
+    initUserAvatar(user);
+
+    const searchInput = document.getElementById('search-candidatures');
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    const sortSelect = document.getElementById('sort-candidatures');
+    if (sortSelect) sortSelect.addEventListener('change', applyFilters);
+
     showSkeletons();
     try {
         allApplications = await API.getApplications();
-        updateCounts();
-        renderApplications(allApplications);
-        // Position the indicator on the first tab
-        requestAnimationFrame(() => moveIndicator(document.querySelector('.animated-tab.active')));
+        updateStats();
+        applyFilters();
     } catch (e) {
         console.error(e);
+        renderApplications([]);
         showToast('Erreur de chargement des candidatures', 'error');
-    }
-
-    // Search input
-    const searchInput = document.getElementById('search-candidatures');
-    if (searchInput) {
-        searchInput.addEventListener('input', () => applyFilters());
-    }
-    // Sort select
-    const sortSelect = document.getElementById('sort-candidatures');
-    if (sortSelect) {
-        sortSelect.addEventListener('change', () => applyFilters());
     }
 });
 
-// =============================================
-// SKELETON LOADING
-// =============================================
+// Les candidatures "à modifier" vivent dans la colonne "En attente"
+function columnOf(status) {
+    return status === 'to_modify' ? 'pending' : (COLUMNS.includes(status) ? status : 'draft');
+}
+
 function showSkeletons() {
-    const container = document.getElementById('applications-container');
-    if (!container) return;
-    const grid = document.createElement('div');
-    grid.className = 'job-grid';
-    for (let i = 0; i < 6; i++) {
-        const card = document.createElement('div');
-        card.className = 'skeleton-card';
-        card.innerHTML = `
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line"></div>
-        `;
-        grid.appendChild(card);
-    }
-    container.innerHTML = '';
-    container.appendChild(grid);
+    COLUMNS.forEach(key => {
+        const col = document.getElementById(`col-${key}`);
+        if (col) col.innerHTML = '<div class="skeleton" style="height:120px"></div>';
+    });
 }
 
-// =============================================
-// ANIMATED TAB INDICATOR
-// =============================================
-function moveIndicator(tabEl) {
-    const indicator = document.getElementById('tab-indicator');
-    const container = document.getElementById('tabs-container');
-    if (!indicator || !tabEl || !container) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const tabRect = tabEl.getBoundingClientRect();
-
-    indicator.style.left = (tabRect.left - containerRect.left) + 'px';
-    indicator.style.width = tabRect.width + 'px';
-}
-
-function filterByStatus(status, tabEl) {
-    // Update active tab
-    document.querySelectorAll('.animated-tab').forEach(t => t.classList.remove('active'));
-    tabEl.classList.add('active');
-
-    // Slide indicator
-    moveIndicator(tabEl);
-
-    // Apply all filters (status + search + sort)
-    applyFilters(status);
-}
-
-// =============================================
-// SEARCH & SORT
-// =============================================
-function applyFilters(statusOverride) {
-    const activeTab = document.querySelector('.animated-tab.active');
-    const status = statusOverride || (activeTab ? activeTab.dataset.status : 'all');
-
-    const searchTerm = (document.getElementById('search-candidatures')?.value || '').toLowerCase();
+function applyFilters() {
+    const searchTerm = (document.getElementById('search-candidatures')?.value || '').trim().toLowerCase();
     const sortBy = document.getElementById('sort-candidatures')?.value || 'date-desc';
 
-    // Filter by status
-    let filtered = status === 'all' ? [...allApplications] : allApplications.filter(a => a.status === status);
-
-    // Filter by search
+    let filtered = [...allApplications];
     if (searchTerm) {
-        filtered = filtered.filter(a => {
-            const company = (a.job?.company || '').toLowerCase();
-            const title = (a.job?.title || '').toLowerCase();
-            return company.includes(searchTerm) || title.includes(searchTerm);
-        });
+        filtered = filtered.filter(a =>
+            (a.job?.company || '').toLowerCase().includes(searchTerm) ||
+            (a.job?.title || '').toLowerCase().includes(searchTerm));
     }
 
-    // Sort
     switch (sortBy) {
         case 'date-asc':
             filtered.sort((a, b) => new Date(a.createdDate || 0) - new Date(b.createdDate || 0));
             break;
-        case 'date-desc':
-            filtered.sort((a, b) => new Date(b.createdDate || 0) - new Date(a.createdDate || 0));
-            break;
         case 'company':
             filtered.sort((a, b) => (a.job?.company || '').localeCompare(b.job?.company || ''));
             break;
-        case 'status':
-            filtered.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
+        case 'score':
+            filtered.sort((a, b) => (b.job?.compatibility || 0) - (a.job?.compatibility || 0));
             break;
+        default:
+            filtered.sort((a, b) => new Date(b.createdDate || 0) - new Date(a.createdDate || 0));
     }
 
     renderApplications(filtered);
 }
 
-// =============================================
-// COUNTS
-// =============================================
-function updateCounts() {
+function updateStats() {
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    set('count-all',       allApplications.length);
-    set('count-draft',     allApplications.filter(a => a.status === 'draft').length);
-    set('count-pending',   allApplications.filter(a => a.status === 'pending').length);
-    set('count-sent',      allApplications.filter(a => a.status === 'sent').length);
-    set('count-responded', allApplications.filter(a => a.status === 'responded').length);
+    const scores = allApplications.map(a => a.job?.compatibility).filter(n => typeof n === 'number');
+    set('stat-total', allApplications.length);
+    set('stat-sent', allApplications.filter(a => a.status === 'sent').length);
+    set('stat-pending', allApplications.filter(a => a.status === 'pending' || a.status === 'to_modify').length);
+    set('stat-best', scores.length ? Math.max(...scores) + '%' : '–');
 }
 
-// =============================================
-// RENDER
-// =============================================
+function renderCard(app) {
+    const job = app.job || {};
+    const status = app.status || 'draft';
+    const where = [job.company, job.location].filter(Boolean).map(escapeHtml).join(' · ');
+    const date = app.responseDate || app.sentDate || app.createdDate;
+    const score = typeof job.compatibility === 'number'
+        ? `<span class="match-score">${job.compatibility}%</span>`
+        : `<span class="match-score">${STATUS_LABELS[status] || escapeHtml(status)}</span>`;
+    const tags = [
+        app.cv_path && '<span class="tag">CV joint</span>',
+        app.coverLetter && '<span class="tag">Lettre</span>',
+        app.customEmail && '<span class="tag">Email</span>'
+    ].filter(Boolean).join('');
+
+    const column = columnOf(status);
+    return `<div class="app-card ${column === 'responded' ? 'response' : column}">
+        <div class="card-top">
+            <div class="company-logo">${CARD_ICONS.logo}</div>
+            ${score}
+        </div>
+        <div class="card-role">${escapeHtml(job.title || 'Poste')}</div>
+        ${where ? `<div class="card-company">${CARD_ICONS.company} ${where}</div>` : ''}
+        ${tags ? `<div class="card-tags">${tags}</div>` : ''}
+        ${status === 'to_modify' ? `<div class="card-alert alert-yellow">${CARD_ICONS.alert} À modifier${app.notes ? ' : ' + escapeHtml(app.notes) : ''}</div>` : ''}
+        <div class="card-footer">
+            <span class="card-date">${CARD_ICONS.date} ${date ? formatDate(date) : '–'}</span>
+            <a href="application-review.html?id=${encodeURIComponent(app.id)}" class="card-action">${ACTION_LABELS[status] || 'Voir'} ${CARD_ICONS.arrow}</a>
+        </div>
+    </div>`;
+}
+
 function renderApplications(apps) {
-    const container = document.getElementById('applications-container');
-    if (!container) return;
-    container.innerHTML = '';
-
-    if (apps.length === 0) {
-        container.innerHTML = `
-            <div class="card" style="text-align: center; padding: var(--space-2xl);">
-                <div style="margin-bottom: var(--space-md); opacity: 0.3;">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                    </svg>
-                </div>
-                <p style="color: var(--color-text-muted); margin-bottom: var(--space-lg);">Aucune candidature trouvée.</p>
-                <a href="applications.html" class="btn btn-primary">Démarrer une recherche</a>
-            </div>`;
-        return;
-    }
-
-    const grid = document.createElement('div');
-    grid.className = 'job-grid';
-
-    apps.forEach((app, i) => {
-        const job = app.job || {};
-        const statusLabels = {
-            draft: 'Brouillon',
-            pending: 'En attente',
-            sent: 'Envoyée',
-            responded: 'Réponse reçue',
-            to_modify: 'À modifier'
-        };
-
-        const hasCv = app.cv_path ? `<span title="CV joint" style="margin-left:8px;display:inline-flex;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-            </svg>
-        </span>` : '';
-        const hasCover = app.cover_letter ? `<span title="Lettre de motivation" style="margin-left:4px;display:inline-flex;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>
-        </span>` : '';
-
-        const card = document.createElement('div');
-        card.className = 'job-card';
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-
-        card.innerHTML = `
-            <div class="job-card-header">
-                <div>
-                    <div class="job-company">${job.company || 'Entreprise'}</div>
-                    <div class="job-title">${job.title || 'Poste'}</div>
-                </div>
-                <span class="badge badge-${app.status}">${statusLabels[app.status] || app.status}</span>
-            </div>
-            ${app.sentDate ? `<div class="job-detail" style="display:flex;align-items:center;gap:0.3rem;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-                Envoyée le ${formatDate(app.sentDate)}
-            </div>` : ''}
-            ${app.responseDate ? `<div class="job-detail" style="display:flex;align-items:center;gap:0.3rem;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-                Réponse le ${formatDate(app.responseDate)}
-            </div>` : ''}
-            <div class="job-detail" style="margin-left: auto;">${hasCv}${hasCover}</div>
-            ${app.notes ? `<p style="color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: var(--space-md); display:flex; align-items:center; gap:0.3rem;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-                ${app.notes}
-            </p>` : ''}
-            <div class="job-footer">
-                <span></span>
-                <a href="application-review.html?id=${app.id}" class="btn btn-primary btn-sm">Réviser</a>
-            </div>
-        `;
-
-        grid.appendChild(card);
-
-        // Staggered entrance animation
-        setTimeout(() => {
-            card.style.transition = 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, i * 80);
+    COLUMNS.forEach(key => {
+        const col = document.getElementById(`col-${key}`);
+        const count = document.getElementById(`col-count-${key}`);
+        const items = apps.filter(a => columnOf(a.status) === key);
+        if (count) count.textContent = items.length;
+        if (!col) return;
+        col.innerHTML = items.length
+            ? items.map(renderCard).join('')
+            : `<div style="text-align:center;padding:1.5rem .5rem;color:var(--muted);font-size:.78rem">Aucune candidature</div>`;
     });
 
-    container.appendChild(grid);
+    const draftCol = document.getElementById('col-draft');
+    if (draftCol) {
+        draftCol.insertAdjacentHTML('beforeend', `<a href="applications.html" class="add-card" style="display:flex;text-decoration:none;color:inherit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Nouvelle candidature
+        </a>`);
+    }
 }
-
-// Handle window resize for indicator
-window.addEventListener('resize', () => {
-    const activeTab = document.querySelector('.animated-tab.active');
-    if (activeTab) moveIndicator(activeTab);
-});

@@ -164,6 +164,29 @@
     @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}.nav-links .nav-link span{display:none}}
     @media(max-width:600px){.topnav{padding:0 1rem}}
       .logo-badge{display:inline-flex;align-items:baseline;gap:2px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:8px;padding:5px 12px 5px 10px;line-height:1;text-decoration:none}    .logo-w{font-size:18px;font-weight:900;color:#fff;letter-spacing:-1px}    .logo-job{font-size:12px;font-weight:700;color:#10b981;letter-spacing:2.5px}    [data-theme=light] .logo-badge{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.35)}    [data-theme=light] .logo-w{color:#0f172a}
+
+    /* TOASTS + MODAL + EMPTY STATE */
+    #toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+    .toast{display:flex;align-items:center;gap:12px;background:rgba(10,20,32,.97);backdrop-filter:blur(20px);border:1px solid var(--gb);border-radius:12px;padding:.75rem 1rem;font-size:.85rem;color:var(--text);opacity:0;transform:translateX(24px);transition:all .3s;pointer-events:auto}
+    [data-theme="light"] .toast{background:rgba(255,255,255,.97)}
+    .toast.toast-show{opacity:1;transform:translateX(0)}
+    .toast-icon{flex-shrink:0;display:flex}
+    .toast-success{border-left:2px solid #10b981}.toast-error{border-left:2px solid #f43f5e}.toast-info{border-left:2px solid #3b82f6}.toast-warning{border-left:2px solid #f59e0b}
+    .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.875rem;background:var(--glass);border:1px dashed var(--gb);border-radius:16px}
+    .empty-state a{color:var(--em-l);font-weight:600;text-decoration:none}
+    .skeleton{background:linear-gradient(90deg,var(--glass) 25%,var(--gh) 50%,var(--glass) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:16px;height:150px;margin-bottom:.85rem;border:1px solid var(--gb)}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .field-select{background:var(--glass);border:1px solid var(--gb);border-radius:10px;padding:.5rem .7rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.82rem;width:100%;outline:none;cursor:pointer}
+    .field-select option{background:#071a20;color:#f0fdf8}
+    .modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:1rem}
+    .modal-overlay.hidden{display:none}
+    .modal-box{background:#071a20;border:1px solid var(--gb);border-radius:18px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:1.5rem}
+    [data-theme="light"] .modal-box{background:#fff}
+    .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem}
+    .modal-head h3{font-size:1.15rem;font-weight:800}
+    .modal-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1}
+    .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1.25rem}
+    .btn-danger{padding:.6rem 1rem;border-radius:10px;border:1px solid rgba(244,63,94,.35);background:rgba(244,63,94,.1);color:#fb7185;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
 </style>
 </head>
 <body>
@@ -184,12 +207,10 @@
       <a href="jobs.html" class="nav-link active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span>Emplois</span>
-        <span class="badge">12</span>
       </a>
       <a href="candidatures.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         <span>Candidatures</span>
-        <span class="badge">5</span>
       </a>
       <a href="recruiters.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -204,227 +225,97 @@
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
-      <div class="avatar">MM</div>
+      <div class="avatar" id="user-avatar" title="Déconnexion">–</div>
     </div>
   </nav>
 
   <div class="page">
-    <!-- PAGE HEADER -->
     <div class="page-header fade-in fi1">
       <div>
         <h2>Offres d'emploi</h2>
-        <p>50 offres correspondant à votre profil — mises à jour en temps réel</p>
+        <p>Les offres trouvées par l'agent pour votre profil</p>
       </div>
     </div>
 
-    <!-- STATS -->
     <div class="stats-row fade-in fi2">
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(16,185,129,.14);color:var(--em-l)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
-        <div><div class="stat-val" style="color:var(--em-l)">50</div><div class="stat-lbl">Offres trouvées</div></div>
+        <div><div class="stat-val" id="stat-total" style="color:var(--em-l)">–</div><div class="stat-lbl">Offres trouvées</div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(251,191,36,.12);color:#fbbf24"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-        <div><div class="stat-val" style="color:#fbbf24">12</div><div class="stat-lbl">Nouvelles aujourd'hui</div></div>
+        <div><div class="stat-val" id="stat-new" style="color:#fbbf24">–</div><div class="stat-lbl">Nouvelles (7 jours)</div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(59,130,246,.14);color:#93c5fd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-        <div><div class="stat-val" style="color:#93c5fd">91%</div><div class="stat-lbl">Match moyen</div></div>
+        <div><div class="stat-val" id="stat-avg" style="color:#93c5fd">–</div><div class="stat-lbl">Match moyen</div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-icon" style="background:rgba(167,139,250,.14);color:#c4b5fd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
-        <div><div class="stat-val" style="color:#c4b5fd">18</div><div class="stat-lbl">Entreprises</div></div>
+        <div><div class="stat-val" id="stat-companies" style="color:#c4b5fd">–</div><div class="stat-lbl">Entreprises</div></div>
       </div>
     </div>
 
-    <!-- SEARCH -->
     <div class="search-bar fade-in fi3">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Rechercher un poste, une entreprise, une compétence…"/>
+      <input type="text" id="filter-search" placeholder="Rechercher un poste, une entreprise, une compétence…" aria-label="Rechercher"/>
       <div class="search-bar-divider"></div>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      <input type="text" placeholder="Localisation" style="max-width:160px"/>
+      <input type="text" id="filter-location" placeholder="Localisation" style="max-width:160px" aria-label="Localisation"/>
     </div>
 
-    <!-- FILTERS -->
-    <div class="filters fade-in fi3">
-      <button class="filter-btn active">Tous types</button>
-      <button class="filter-btn">CDI</button>
-      <button class="filter-btn">CDD</button>
-      <button class="filter-btn">Stage</button>
-      <button class="filter-btn">Alternance</button>
-      <button class="filter-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="11" y2="18"/></svg>
-        Filtres avancés
-      </button>
+    <div class="filters fade-in fi3" id="contract-filters">
+      <button class="filter-btn active" data-contract="">Tous types</button>
+      <button class="filter-btn" data-contract="CDI">CDI</button>
+      <button class="filter-btn" data-contract="CDD">CDD</button>
+      <button class="filter-btn" data-contract="Stage">Stage</button>
+      <button class="filter-btn" data-contract="Alternance">Alternance</button>
     </div>
 
-    <!-- CONTENT LAYOUT -->
     <div class="content-layout">
-      <!-- JOBS LIST -->
       <div>
-        <div class="jobs-count fade-in fi4"><span>50</span> offres trouvées pour votre profil</div>
-
-        <!-- Job 1 - featured -->
-        <div class="job-card featured fade-in fi4">
-          <div class="job-top">
-            <div class="job-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
-            <div class="job-info">
-              <div class="job-role">Ingénieur Conception Mécanique Jr</div>
-              <div class="job-meta">
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Bosch Rexroth</span>
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Lyon · France</span>
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg> CDI</span>
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 38–45k€</span>
-              </div>
-            </div>
-            <div class="job-score">
-              <div class="score-ring">
-                <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(16,185,129,.12)" stroke-width="3"/><circle cx="22" cy="22" r="18" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="10" stroke-linecap="round"/></svg>
-                <span class="score-val">91%</span>
-              </div>
-            </div>
-          </div>
-          <div class="job-tags">
-            <span class="job-tag highlight">CAO CREO</span>
-            <span class="job-tag highlight">Windchill</span>
-            <span class="job-tag">Hydraulique</span>
-            <span class="job-tag">SolidWorks</span>
-            <span class="job-tag">Anglais</span>
-          </div>
-          <div class="job-footer">
-            <span class="job-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Publié il y a 1j</span>
-            <div class="job-actions">
-              <button class="btn-save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Sauvegarder</button>
-              <button class="btn-apply">Candidater</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Job 2 -->
-        <div class="job-card fade-in fi4" style="animation-delay:.35s">
-          <div class="job-top">
-            <div class="job-logo" style="background:rgba(245,158,11,.12);color:#fbbf24"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg></div>
-            <div class="job-info">
-              <div class="job-role">Ingénieur Matériaux et Conception</div>
-              <div class="job-meta">
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Michelin</span>
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Clermont-Ferrand</span>
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg> CDI</span>
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 42–50k€</span>
-              </div>
-            </div>
-            <div class="job-score">
-              <div class="score-ring">
-                <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(16,185,129,.12)" stroke-width="3"/><circle cx="22" cy="22" r="18" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="11" stroke-linecap="round"/></svg>
-                <span class="score-val">90%</span>
-              </div>
-            </div>
-          </div>
-          <div class="job-tags">
-            <span class="job-tag highlight">CAO CREO</span>
-            <span class="job-tag">Matériaux composites</span>
-            <span class="job-tag">Simulation FEM</span>
-            <span class="job-tag">Python</span>
-          </div>
-          <div class="job-footer">
-            <span class="job-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Publié il y a 2j</span>
-            <div class="job-actions">
-              <button class="btn-save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Sauvegarder</button>
-              <button class="btn-apply">Candidater</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Job 3 -->
-        <div class="job-card fade-in fi4" style="animation-delay:.45s">
-          <div class="job-top">
-            <div class="job-logo" style="background:rgba(59,130,246,.14);color:#93c5fd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-            <div class="job-info">
-              <div class="job-role">Concepteur Mécanique Automatisation</div>
-              <div class="job-meta">
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Safran Aerospace</span>
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Villaroche · IDF</span>
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg> CDI</span>
-                <span class="job-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 45–55k€</span>
-              </div>
-            </div>
-            <div class="job-score">
-              <div class="score-ring">
-                <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(16,185,129,.12)" stroke-width="3"/><circle cx="22" cy="22" r="18" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="13" stroke-linecap="round"/></svg>
-                <span class="score-val">89%</span>
-              </div>
-            </div>
-          </div>
-          <div class="job-tags">
-            <span class="job-tag highlight">CREO</span>
-            <span class="job-tag highlight">CAO</span>
-            <span class="job-tag">PDM</span>
-            <span class="job-tag">Aéronautique</span>
-            <span class="job-tag">Anglais B2</span>
-          </div>
-          <div class="job-footer">
-            <span class="job-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Publié il y a 3j</span>
-            <div class="job-actions">
-              <button class="btn-save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Sauvegarder</button>
-              <button class="btn-apply">Candidater</button>
-            </div>
-          </div>
+        <div class="jobs-count fade-in fi4"><span id="results-count">0</span> offres trouvées pour votre profil</div>
+        <div id="job-grid">
+          <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
         </div>
       </div>
 
-      <!-- SIDEBAR FILTERS -->
       <div class="sidebar-filter fade-in fi4" style="animation-delay:.5s;position:sticky;top:76px">
         <div class="sidebar-section">
-          <span class="sidebar-label">Type de contrat</span>
-          <div class="check-item checked">
-            <div class="check-box"></div> CDI
-          </div>
-          <div class="check-item checked">
-            <div class="check-box"></div> CDD
-          </div>
-          <div class="check-item">
-            <div class="check-box"></div> Stage
-          </div>
-          <div class="check-item">
-            <div class="check-box"></div> Alternance
-          </div>
+          <label class="sidebar-label" for="sort-by">Trier par</label>
+          <select id="sort-by" class="field-select">
+            <option value="compatibility">Meilleur match</option>
+            <option value="date">Plus récentes</option>
+            <option value="company">Entreprise (A-Z)</option>
+          </select>
         </div>
         <div class="sidebar-section">
-          <span class="sidebar-label">Salaire annuel</span>
-          <div class="range-bar"><div class="range-fill"></div></div>
-          <div class="range-labels"><span>30k€</span><span>70k€</span></div>
+          <label class="sidebar-label" for="filter-compatibility">Score de match minimum</label>
+          <select id="filter-compatibility" class="field-select">
+            <option value="0">Tous</option>
+            <option value="90">Excellent (≥ 90%)</option>
+            <option value="80">Bon (≥ 80%)</option>
+            <option value="70">Correct (≥ 70%)</option>
+          </select>
         </div>
         <div class="sidebar-section">
-          <span class="sidebar-label">Localisation</span>
-          <div class="check-item checked"><div class="check-box"></div> Île-de-France</div>
-          <div class="check-item checked"><div class="check-box"></div> Auvergne-Rhône-Alpes</div>
-          <div class="check-item"><div class="check-box"></div> Occitanie</div>
-          <div class="check-item"><div class="check-box"></div> Bretagne</div>
-        </div>
-        <div class="sidebar-section">
-          <span class="sidebar-label">Score de match</span>
-          <div class="check-item checked"><div class="check-box"></div> Excellent (≥90%)</div>
-          <div class="check-item checked"><div class="check-box"></div> Bon (80–89%)</div>
-          <div class="check-item"><div class="check-box"></div> Correct (70–79%)</div>
+          <button class="btn-save" style="width:100%;justify-content:center" onclick="resetFilters()">Réinitialiser les filtres</button>
         </div>
       </div>
     </div>
   </div>
 
-  <script>
-    // Filter buttons
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-    });
+  <div id="job-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeJobModal()">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-job-title">
+      <div class="modal-head">
+        <h3 id="modal-job-title"></h3>
+        <button class="modal-close" onclick="closeJobModal()" aria-label="Fermer">&times;</button>
+      </div>
+      <div id="modal-job-content"></div>
+    </div>
+  </div>
 
-    // Check items toggle
-    document.querySelectorAll('.check-item').forEach(item => {
-      item.addEventListener('click', () => item.classList.toggle('checked'));
-    });
+  <script>
 
     // ── THEME TOGGLE ──
     const root = document.documentElement;
@@ -450,6 +341,8 @@
 
     window.addEventListener('scroll', navBg);
   </script>
+
+<div id="toast-container"></div>
 
 <!-- Backend scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

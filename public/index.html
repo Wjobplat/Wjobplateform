@@ -301,12 +301,6 @@
       root.dataset.theme = next;
       localStorage.setItem('wjob-theme',next);
     });
-    document.getElementById('user-avatar').addEventListener('click',async()=>{
-      if(confirm('Se déconnecter ?')){
-        try{await API.logout();}catch(e){}
-        window.location.href='login.html';
-      }
-    });
     window.addEventListener('scroll',()=>{
       const light=root.dataset.theme==='light',sc=window.scrollY>10;
       document.querySelector('.topnav').style.background=sc?(light?'rgba(240,253,248,.96)':'rgba(3,13,18,.9)'):(light?'rgba(240,253,248,.88)':'rgba(3,13,18,.75)');
