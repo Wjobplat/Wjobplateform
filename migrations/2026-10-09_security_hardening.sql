@@ -34,3 +34,14 @@ where raw_user_meta_data->>'role' = 'admin';
 
 -- 6. Aucun accès aux tables avant connexion
 revoke all on public.jobs, public.applications, public.recruiters, public.agent_actions, public.webhook_config, public.user_profiles from anon;
+
+-- 7. Correctif (même base que WJOBv3) : lignes historiques sans propriétaire rattachées
+--    au compte principal ; upload de CV autorisé à la racine, lecture limitée à l'auteur
+update public.jobs set user_id = 'e8ebe380-25c7-4478-bdb5-171246f62199' where user_id is null;
+update public.recruiters set user_id = 'e8ebe380-25c7-4478-bdb5-171246f62199' where user_id is null;
+drop policy if exists "Users can upload own CVs" on storage.objects;
+create policy "Users can upload CVs" on storage.objects for insert to authenticated
+  with check (bucket_id = 'cvs');
+drop policy if exists "Users can read their CVs" on storage.objects;
+create policy "Users can read their CVs" on storage.objects for select to authenticated
+  using (bucket_id = 'cvs' and ((auth.uid())::text = (storage.foldername(name))[1] or owner_id = (auth.uid())::text));
